@@ -13,7 +13,17 @@ describe('Service: ResourceUtils', function () {
 	}));
 
 	it('should pull off query params', function () {
-		expect(utils.objectifyQueryParams('http://blah.com/stuff?who=me&you=me')).toEqual({});
+		expect(utils.objectifyQueryParams('http://blah.com/stuff?who=me&you=me')).toEqual({
+			'who': 'me',
+			'you': 'me'
+		});
+		expect(utils.objectifyQueryParams('http://localhost:8080/my/friend/bob')).toEqual({});
+		expect(utils.objectifyQueryParams('http://localhost/dude?')).toEqual({});
+		expect(utils.objectifyQueryParams('http://blah.com?bro=:me&dude=:you&so=what'))
+		.toEqual({
+			'bro': ':me',
+			'dude': ':you',
+			'so': 'what'
+		});
 	});
-
 });
