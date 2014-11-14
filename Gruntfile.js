@@ -69,13 +69,7 @@ module.exports = function (grunt) {
 
 		bumpup: {
 			files: ['package.json', 'bower.json']
-		},
-
-		changelog: {
-			options: {
-				// Task-specific options go here.
-			}
-		},
+		}
 
 	});
 
