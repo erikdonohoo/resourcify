@@ -14,18 +14,11 @@ function resourcificator ($http, $q) {
         '$update': 'PUT',
         '$delete': 'DELETE'
       },
-      validMethods = ['GET', 'PUT', 'POST', 'DELETE', 'PATCH'],
       bodyMethods = ['$save', '$update', '$delete', 'PUT', 'POST', 'DELETE', 'PATCH'];
 
-  function validMethod (method) {
-    if (!~validMethods.indexOf(method)) {
-      throw $resourcifyError('requesttype', '"@{0}" is not a valid request method.', method);
-    }
-    return method;
-  }
-
+  // Finds and replaces query params and path params
   function replaceParams (params, url) {
-    
+    var findParam = /[\/=](:\w*[a-zA-Z]\w*)/g, copiedPath = angular.copy(url);
   }
 }
 
