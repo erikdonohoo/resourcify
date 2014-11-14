@@ -28,6 +28,7 @@
     "grunt-karma": "^0.8.3",
     "jshint-stylish": "^0.2.0",
     "karma": "^0.12.16",
+    "karma-chrome-launcher": "^0.1.5",
     "karma-jasmine": "^0.1.5",
     "karma-ng-html2js-preprocessor": "^0.1.0",
     "karma-ng-scenario": "^0.1.0",
