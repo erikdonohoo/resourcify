@@ -27,6 +27,7 @@ function resourcifyUtils () {
       copiedPath = copiedPath.substring(0, copiedPath.indexOf('?'));
     }
 
+    // Fill in missing values in query params
     angular.forEach(qParams, function (value, key) {
       var pseudoKey = value.substring(1);
       if (value.charAt(0) === ':' && (params[pseudoKey] || object[pseudoKey])) {
@@ -37,6 +38,7 @@ function resourcifyUtils () {
       }
     });
 
+    // Replace pieces in path
     while ((match = findParam.exec(copiedPath))) {
       var regexVal = match[1], key = match[1].substring(1);
       copiedPath = copiedPath.replace(regexVal, params[key] || object[key] || cut);
@@ -48,7 +50,7 @@ function resourcifyUtils () {
       }
     }
 
-    // Add on query
+    // Add on remaining query params
     params = angular.extend({}, finalParams, params);
     var stringParams = [];
     angular.forEach(params, function (value, key) {
