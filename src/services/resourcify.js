@@ -3,10 +3,10 @@
 function resourcificator ($http, $q) {
 
   var $resourcifyErr = angular.$$minErr('resourcify');
-  console.log($http, $q, $resourcifyErr);
+  console.log($http, $resourcifyErr);
 
   function Resourcify (url, config) {
-    this.url = url;
+    this.url = $q.when(url);
     this.config = config || {};
     var that = this;
 
