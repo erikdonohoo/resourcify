@@ -19,4 +19,23 @@ function resourcificator ($http, $q, $log) {
 
 resourcificator.$inject = ['$http', '$q', '$log'];
 
-angular.module('resourcify').service('resourcify', resourcificator);
+angular.module('resourcify').service('Resourcify', resourcificator);
+
+/*
+
+Playing with ideas for API
+
+angular.module('resourcify').service('User', ['Resourcify', function (Resourcify) {
+
+    // Use chaning
+    return new ResourceBuilder('User', (prom || string), ['query', 'get', '$get'])
+    .addMethod({
+      name: 'isOnUser'
+    })
+    .before(['get'], someFn)
+    .after(['get'], someFn)
+    .resourcify(); // This last call returns the Constructor that has been built
+
+}]);
+
+*/
