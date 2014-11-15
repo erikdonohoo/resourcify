@@ -5,18 +5,20 @@ function resourcificator ($http, $q) {
   var $resourcifyErr = angular.$$minErr('resourcify');
   console.log($http, $q, $resourcifyErr);
 
-  function Resourcify (url, $cache) {
+  function Resourcify (url, config) {
     this.url = url;
-    this.$cache = $cache;
+    this.config = config || {};
     var that = this;
 
     // Make constructor
-    this.Constructor = function (data) {
+    function Constructor (data) {
       angular.extend(this, data);
-      this.$$builder = that;
-    };
+      (that.config.constructor || angular.noop).bind(this)(data);
+    }
 
-    return this;
+    Constructor.$$builder = this;
+
+    this.ResourceConstructor = Constructor;
   }
 
   // Add before after functions
@@ -42,12 +44,12 @@ function resourcificator ($http, $q) {
   };
 
   Resourcify.prototype.request = function (config) {
-    addRequest(config, this.Constructor);
+    addRequest(config, this.ResourceConstructor);
     return this;
   };
 
   Resourcify.prototype.create = function () {
-    return this.Constructor;
+    return this.ResourceConstructor;
   };
 
   function addRequest (config, Constructor) {
@@ -68,7 +70,7 @@ Playing with ideas for API
 angular.module('resourcify').service('User', ['Resourcify', function (Resourcify) {
 
     // Use chaning
-    return new Resourcify('User', (prom || string), $cache)
+    return new Resourcify((prom || string), $cache, constructor)
     .before(['get'], someFn) // someFn is passed instance of this (for instance methods)
     .after(['get'], someFn)
     .method('stringName', someFn) // Adds a instance method
