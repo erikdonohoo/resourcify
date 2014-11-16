@@ -13,8 +13,41 @@ module.exports = function (grunt) {
     // Concat files
     concat: {
       dist: {
-        src: ['src/**/*.js'],
+        src: [
+          'module.prefix',
+          '.tmp/main.js',
+          '.tmp/utils.js',
+          '.tmp/resourcify.js',
+          'module.suffix'],
         dest: 'dist/<%= pkg.name %>.js'
+      }
+    },
+
+    // Clean
+    clean: ['.tmp/', 'dist/'],
+
+    // Remove 'use strict' repetition
+    replace: {
+      strict: {
+        src: ['.tmp/**/*.js'],
+        overwrite: true,
+        replacements: [{
+          from: '\'use strict\';\n\n',
+          to: ''
+        }]
+      }
+    },
+
+    // Add indentation
+    indent: {
+      all: {
+        src: ['src/**/*.js'],
+        dest: '.tmp/',
+        options: {
+          style: 'space',
+          size: 1,
+          change: 1
+        }
       }
     },
 
@@ -74,7 +107,7 @@ module.exports = function (grunt) {
   });
 
   // Register tasks
-  grunt.registerTask('build', ['jshint:all', 'concat', 'uglify']);
+  grunt.registerTask('build', ['clean', 'jshint:all', 'indent:all', 'replace:strict', 'concat', 'uglify']);
   grunt.registerTask('test', ['jshint:all', 'jshint:test', 'connect:test', 'karma']);
   grunt.registerTask('default', ['test', 'build']);
 
