@@ -1,6 +1,5 @@
 'use strict';
 
-// This is just an example, you can delete
 describe('Service: ResourceUtils', function () {
 
   beforeEach(module('resourcify'));
