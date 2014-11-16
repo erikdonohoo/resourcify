@@ -1,18 +1,18 @@
 'use strict';
 
-function resourcifyUtils () {
-
-  // Strip off any query params, and put them in a params object
-  function objectifyQueryParams (url) {
-    var params = {}, query = url.substring(url.indexOf('?'));
-    if (query !== url) {
-      query.replace(
-          new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
-          function($0, $1, $2, $3) { params[$1] = $3; }
-      );
-    }
-    return params;
+// Strip off any query params, and put them in a params object
+function objectifyQueryParams (url) {
+  var params = {}, query = url.substring(url.indexOf('?'));
+  if (query !== url) {
+    query.replace(
+        new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
+        function($0, $1, $2, $3) { params[$1] = $3; }
+    );
   }
+  return params;
+}
+
+function resourcifyUtils () {
 
   // Finds and replaces query params and path params
   function replaceParams (params, url, object) {
@@ -60,7 +60,6 @@ function resourcifyUtils () {
   }
 
   return {
-    objectifyQueryParams: objectifyQueryParams,
     replaceParams: replaceParams
   };
 }
