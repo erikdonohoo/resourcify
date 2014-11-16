@@ -20,13 +20,13 @@ describe('Service: Resourcify', function () {
     }));
 
     it('should make an instance with passed values', function () {
-      var User = new Resourcify('http://localhost/api/users/:userId').create();
+      var User = new Resourcify('User', 'http://localhost/api/users/:userId').create();
       var u = new User({id: 123, name: 'Bob'});
       expect(u instanceof User).toBe(true);
       expect(u.id).toEqual(123);
     });
     it('should use a passed function to run during construction', function() {
-      var User = new Resourcify('http://localhost/api/users/:userId', {
+      var User = new Resourcify('User', 'http://localhost/api/users/:userId', {
         constructor: function () {
           this.salutation = 'Hello, ' + this.name;
         }
@@ -35,7 +35,7 @@ describe('Service: Resourcify', function () {
       expect(u.salutation).toEqual('Hello, Bob');
     });
     it('should turn the url into a promise', function () {
-      var User = new Resourcify('http://localhost/api/users/:userId').create();
+      var User = new Resourcify('User', 'http://localhost/api/users/:userId').create();
       expect(User.$$builder.url.then).toBeDefined();
       User.$$builder.url.then(function (url) {
         expect(url).toBe('http://localhost/api/users/:userId');

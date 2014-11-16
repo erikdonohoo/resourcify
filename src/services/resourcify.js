@@ -1,24 +1,30 @@
 'use strict';
 
+/* jshint evil: true */
+// We need this function to allow users to name the constructors we are making
+function renameFunction (name, fn) {
+  return (new Function('return function (call) { return function ' + name +
+    ' () { return call(this, arguments) }; };')())(Function.apply.bind(fn));
+}
+/* jshint evil: false */
+
 function resourcificator ($http, $q) {
 
   var $resourcifyErr = angular.$$minErr('resourcify');
   console.log($http, $resourcifyErr);
 
-  function Resourcify (url, config) {
+  function Resourcify (name, url, config) {
     this.url = $q.when(url);
+    this.name = name;
     this.config = config || {};
     var that = this;
 
     // Make constructor
-    function Constructor (data) {
+    this.ResourceConstructor = renameFunction(this.name, function (data) {
       angular.extend(this, data);
       (that.config.constructor || angular.noop).bind(this)(data);
-    }
-
-    Constructor.$$builder = this;
-
-    this.ResourceConstructor = Constructor;
+    });
+    this.ResourceConstructor.$$builder = this;
   }
 
   // Add before after functions
@@ -70,7 +76,7 @@ Playing with ideas for API
 angular.module('resourcify').service('User', ['Resourcify', function (Resourcify) {
 
     // Use chaning
-    return new Resourcify((prom || string), $cache, constructor)
+    return new Resourcify(name, (prom || string) url, config{$cache, constructor})
     .before(['get'], someFn) // someFn is passed instance of this (for instance methods)
     .after(['get'], someFn)
     .method('stringName', someFn) // Adds a instance method
