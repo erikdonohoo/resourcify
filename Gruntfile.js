@@ -29,8 +29,8 @@ module.exports = function (grunt) {
     // Remove 'use strict' repetition
     replace: {
       strict: {
-        src: ['.tmp/**/*.js'],
-        overwrite: true,
+        src: ['src/**/*.js'],
+        dest: '.tmp/',
         replacements: [{
           from: '\'use strict\';\n\n',
           to: ''
@@ -41,11 +41,11 @@ module.exports = function (grunt) {
     // Add indentation
     indent: {
       all: {
-        src: ['src/**/*.js'],
+        src: ['.tmp/*.js'],
         dest: '.tmp/',
         options: {
           style: 'space',
-          size: 1,
+          size: 2,
           change: 1
         }
       }
@@ -107,7 +107,7 @@ module.exports = function (grunt) {
   });
 
   // Register tasks
-  grunt.registerTask('build', ['clean', 'jshint:all', 'indent:all', 'replace:strict', 'concat', 'uglify']);
+  grunt.registerTask('build', ['clean', 'jshint:all', 'replace:strict', 'indent:all', 'concat', 'uglify']);
   grunt.registerTask('test', ['jshint:all', 'jshint:test', 'connect:test', 'karma']);
   grunt.registerTask('default', ['test', 'build']);
 
