@@ -16,8 +16,7 @@ module.exports = function (grunt) {
         src: [
           'module.prefix',
           '.tmp/main.js',
-          '.tmp/utils.js',
-          '.tmp/resourcify.js',
+          '.tmp/*.js',
           'module.suffix'],
         dest: 'dist/<%= pkg.name %>.js'
       }
@@ -35,19 +34,6 @@ module.exports = function (grunt) {
           from: '\'use strict\';\n\n',
           to: ''
         }]
-      }
-    },
-
-    // Add indentation
-    indent: {
-      all: {
-        src: ['.tmp/*.js'],
-        dest: '.tmp/',
-        options: {
-          style: 'space',
-          size: 2,
-          change: 1
-        }
       }
     },
 
@@ -107,7 +93,7 @@ module.exports = function (grunt) {
   });
 
   // Register tasks
-  grunt.registerTask('build', ['clean', 'jshint:all', 'replace:strict', 'indent:all', 'concat', 'uglify']);
+  grunt.registerTask('build', ['clean', 'jshint:all', 'replace:strict', 'concat', 'uglify']);
   grunt.registerTask('test', ['jshint:all', 'jshint:test', 'connect:test', 'karma']);
   grunt.registerTask('default', ['test', 'build']);
 

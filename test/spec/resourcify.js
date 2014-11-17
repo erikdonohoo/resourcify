@@ -47,5 +47,22 @@ describe('Service: Resourcify', function () {
       });
       $timeout.flush();
     });
+    it('should name constructor properly', function () {
+      var User = new Resourcify('User', 'http://localhost/api/users/:userId').create();
+      expect(User.name).toBe('User');
+    });
+    it('should error when not constructed correctly', function () {
+
+      function exceptionWrapper() {
+        new Resourcify();
+      }
+
+      function exceptionWrapper2() {
+        new Resourcify('User');
+      }
+
+      expect(exceptionWrapper).toThrow();
+      expect(exceptionWrapper2).toThrow();
+    });
   });
 });

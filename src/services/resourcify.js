@@ -10,10 +10,15 @@ function renameFunction (name, fn) {
 
 function resourcificator ($http, $q) {
 
-  var $resourcifyErr = angular.$$minErr('resourcify');
-  console.log($http, $resourcifyErr);
+  var $resourcifyErr = angular.$$minErr('Resourcify');
+  console.log($http);
 
   function Resourcify (name, url, config) {
+
+    if (!name || !url) {
+      throw $resourcifyErr('badargs', 'Must supply a name and a url when constructing');
+    }
+
     this.url = $q.when(url);
     this.name = name;
     this.config = config || {};
@@ -45,7 +50,7 @@ function resourcificator ($http, $q) {
   };
 
   Resourcify.prototype.method = function (name, fn) {
-    this.Constructor.prototype[name] = fn;
+    this.ResourceConstructor.prototype[name] = fn;
     return this;
   };
 
