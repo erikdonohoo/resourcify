@@ -101,4 +101,41 @@ describe('Service: Resourcify -', function () {
       expect(u.v).toBe('foo');
     });
   });
+
+  describe('request', function () {
+    var User, $http;
+
+    beforeEach(inject(function(_$httpBackend_) {
+      $http = _$httpBackend_;
+    }));
+    beforeEach(function () {
+      User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId')
+             .request({method: 'GET', name: 'query', isArray: true})
+             .request({method: 'POST', name: '$save', isInstance: true})
+             .request({method: 'DELETE', name: '$delete', isInstance: true})
+             .create();
+    });
+    afterEach(function () {
+      $http.verifyNoOutstandingExpectation();
+    });
+
+    it('should fetch stuff', function () {
+      $http.expectGET('http://localhost/api/v1/users?total=5')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var users = User.query({total: 5});
+      expect(users.length).toBe(0);
+      $http.flush();
+      expect(users.length).toBe(2);
+      expect(users[0] instanceof User).toBe(true);
+    });
+
+    it('should save stuff', function () {
+      $http.expectPOST('http://localhost/api/v1/users')
+      .respond({id: 123});
+      var user = new User({name: 'bob', friends: 3});
+      user.$save();
+      $http.flush();
+      expect(user.id).toBe(123);
+    });
+  });
 });

@@ -78,8 +78,40 @@ function resourcificator ($http, $q, utils) {
     }
   }
 
+  function doRequest (url, value, config, success, error) {
+    var httpConfig = {
+      url: url,
+      method: config.method
+    };
+
+    httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
+    $http(httpConfig).then(function ok(response) {
+      if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
+        throw $resourcifyErr('arrayobj', 'Saw array or object when expecting the opposite when making @{0} call to @{1}', config.method, url);
+      }
+
+      // Build
+      if (config.isArray) {
+        angular.forEach(response.data, function (item) {
+          value.push(typeof item === 'object' ? new config.$Const(item) : item);
+        });
+      } else {
+        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
+      }
+
+      value.$resolved = true;
+      value.$url = url;
+      success(value);
+      config.$defer.resolve(value);
+
+    }, function rejection(err) {
+      error(err);
+      config.$defer.reject(err);
+    });
+  }
+
   function generateRequest (config) {
-    return function (params, success, err) {
+    return function request (params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
       if (angular.isFunction(params)) {
         err = success || angular.noop;
@@ -97,45 +129,13 @@ function resourcificator ($http, $q, utils) {
 
       // Resolve path
       config.$Const.$$builder.url.then(function resolved(path) {
-        doRequest(utils.replace(params, path, value), value, config, success, err);
+        doRequest(utils.replaceParams(params, path, value), value, config, success, err);
       }, function rejected() {
         throw $resourcifyErr('urlresolution', 'Could not resolve URL for @{0}', config);
       });
 
       return value;
     };
-  }
-
-  function doRequest (url, value, config, success, error) {
-    var httpConfig = {
-      url: url,
-      method: config.method
-    };
-
-    httpConfig.data = /^(POST|PUT|PATCH)$/i.test(config.method) ? value : undefined;
-
-    $http(httpConfig).then(function success(response) {
-      if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
-        throw $resourcifyErr('arrayobj', 'Saw array or object when expecting the opposite when making @{0} call to @{1}', config.method, url);
-      }
-
-      // Build
-      if (config.isArray) {
-        angular.forEach(response.data, function (item) {
-          value.push(typeof item === 'object' ? new config.$Const(item) : item);
-        });
-      } else {
-        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
-      }
-
-      value.$resolved = true;
-      success(value);
-      config.$defer.resolve(value);
-
-    }, function rejection(err) {
-      error(err);
-      config.$defer.reject(err);
-    });
   }
 
   return Resourcify;
