@@ -136,6 +136,7 @@ describe('Service: Resourcify -', function () {
       user.$save();
       $http.flush();
       expect(user.id).toBe(123);
+      expect(user.name).toBe('bob');
     });
   });
 });
