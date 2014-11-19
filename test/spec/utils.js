@@ -7,7 +7,7 @@ describe('Service: ResourceUtils', function () {
   var replaceParams;
 
   // Init
-  beforeEach(inject(function(_resourcifyUtils_){
+  beforeEach(inject(function (_resourcifyUtils_) {
     replaceParams = _resourcifyUtils_.replaceParams;
   }));
 
@@ -15,8 +15,8 @@ describe('Service: ResourceUtils', function () {
     /* global objectifyQueryParams: false */
     it('should turn query params into object', function () {
       expect(objectifyQueryParams('http://blah.com/stuff?who=me&you=me')).toEqual({
-        'who': 'me',
-        'you': 'me'
+        who: 'me',
+        you: 'me'
       });
     });
 
@@ -28,9 +28,9 @@ describe('Service: ResourceUtils', function () {
     it('should handle variable parameters in query', function () {
       expect(objectifyQueryParams('http://blah.com?bro=:me&dude=:you&so=what'))
       .toEqual({
-        'bro': ':me',
-        'dude': ':you',
-        'so': 'what'
+        bro: ':me',
+        dude: ':you',
+        so: 'what'
       });
     });
   });

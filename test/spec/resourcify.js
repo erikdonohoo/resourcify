@@ -8,13 +8,13 @@ describe('Service: Resourcify -', function () {
   var Resourcify;
 
   // Init
-  beforeEach(inject(function(_Resourcify_){
+  beforeEach(inject(function (_Resourcify_) {
     Resourcify = _Resourcify_;
   }));
 
   describe('constructor', function () {
     var $timeout, $q;
-    beforeEach(inject(function(_$timeout_, _$q_){
+    beforeEach(inject(function (_$timeout_, _$q_) {
       $timeout = _$timeout_;
       $q = _$q_;
     }));
@@ -25,7 +25,7 @@ describe('Service: Resourcify -', function () {
       expect(u instanceof User).toBe(true);
       expect(u.id).toEqual(123);
     });
-    it('should use a passed function to run during construction', function() {
+    it('should use a passed function to run during construction', function () {
       var User = new Resourcify('User', 'http://localhost/api/users/:userId', {
         constructor: function () {
           this.salutation = 'Hello, ' + this.name;
@@ -105,7 +105,7 @@ describe('Service: Resourcify -', function () {
   describe('request', function () {
     var User, $http;
 
-    beforeEach(inject(function(_$httpBackend_) {
+    beforeEach(inject(function (_$httpBackend_) {
       $http = _$httpBackend_;
     }));
     beforeEach(function () {

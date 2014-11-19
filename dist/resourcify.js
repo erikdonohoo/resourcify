@@ -89,9 +89,11 @@ function resourcificator ($http, $q, utils) {
     };
 
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-    $http(httpConfig).then(function success(response) {
+    $http(httpConfig).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
-        throw $resourcifyErr('arrayobj', 'Saw array or object when expecting the opposite when making @{0} call to @{1}', config.method, url);
+        throw $resourcifyErr('arrayobj',
+                             'Saw array or object when expecting the opposite when making @{0} call to @{1}',
+                             config.method, url);
       }
 
       // Build
@@ -115,7 +117,7 @@ function resourcificator ($http, $q, utils) {
   }
 
   function generateRequest (config) {
-    return function request (params, success, err) {
+    return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
       if (angular.isFunction(params)) {
         err = success || angular.noop;
@@ -175,7 +177,7 @@ function objectifyQueryParams (url) {
   if (query !== url) {
     query.replace(
         new RegExp('([^?=&]+)(=([^&]*))?', 'g'),
-        function($0, $1, $2, $3) { params[$1] = $3; }
+        function ($0, $1, $2, $3) { params[$1] = $3; }
     );
   }
   return params;

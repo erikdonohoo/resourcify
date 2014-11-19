@@ -64,6 +64,18 @@ module.exports = function (grunt) {
       }
     },
 
+    // JSCS
+    jscs: {
+      main: {
+        files: {
+          src: ['src/**/*.js', 'test/spec/**/*.js']
+        },
+        options: {
+          config: '.jscsrc'
+        }
+      }
+    },
+
     // Test Server
     connect: {
       test: {
@@ -93,8 +105,8 @@ module.exports = function (grunt) {
   });
 
   // Register tasks
-  grunt.registerTask('build', ['clean', 'jshint:all', 'replace:strict', 'concat', 'uglify']);
-  grunt.registerTask('test', ['jshint:all', 'jshint:test', 'connect:test', 'karma']);
+  grunt.registerTask('build', ['clean', 'jshint:all', 'jscs', 'replace:strict', 'concat', 'uglify']);
+  grunt.registerTask('test', ['jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma']);
   grunt.registerTask('default', ['test', 'build']);
 
   // When version bump is occurring, test, bump version, build and update changelog

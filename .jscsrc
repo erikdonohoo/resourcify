@@ -1,0 +1,112 @@
+{
+  "requireCurlyBraces": [
+    "else",
+    "for",
+    "while",
+    "do",
+    "try",
+    "catch"
+  ],
+  "requireSpaceAfterKeywords": [
+    "do",
+    "for",
+    "if",
+    "else",
+    "switch",
+    "try",
+    "catch",
+    "while",
+    "with",
+    "return",
+    "typeof",
+    "return",
+    "case"
+  ],
+  "requireSpaceBeforeBlockStatements": true,
+  "requireParenthesesAroundIIFE": true,
+  "requireSpacesInConditionalExpression": true,
+  "requireSpacesInAnonymousFunctionExpression": {
+    "beforeOpeningCurlyBrace": true,
+    "beforeOpeningRoundBrace": true
+  },
+  "requireSpacesInNamedFunctionExpression": {
+    "beforeOpeningCurlyBrace": true
+  },
+  "disallowSpacesInNamedFunctionExpression": {
+    "beforeOpeningRoundBrace": true
+  },
+  "requireSpacesInFunction": {
+    "beforeOpeningCurlyBrace": true
+  },
+  "disallowSpacesInCallExpression": true,
+  "requireBlocksOnNewline": 1,
+  "disallowEmptyBlocks": true,
+  "disallowSpacesInsideObjectBrackets": "all",
+  "disallowSpacesInsideArrayBrackets": "all",
+  "disallowSpacesInsideParentheses": true,
+  "disallowQuotedKeysInObjects": true,
+  "disallowSpaceAfterObjectKeys": true,
+  "requireCommaBeforeLineBreak": true,
+  "requireOperatorBeforeLineBreak": [
+    "?",
+    "=",
+    "+",
+    "-",
+    "/",
+    "*",
+    "==",
+    "===",
+    "!=",
+    "!==",
+    ">",
+    ">=",
+    "<",
+    "<="
+  ],
+  "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-", "~", "!"],
+  "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
+  "requireSpaceBeforeBinaryOperators": [
+    "=",
+    "+",
+    "-",
+    "/",
+    "*",
+    "==",
+    "===",
+    "!=",
+    "!==",
+    ">",
+    ">=",
+    "<",
+    "<="
+  ],
+  "requireSpaceAfterBinaryOperators": [
+    "=",
+    ",",
+    "+",
+    "-",
+    "/",
+    "*",
+    "==",
+    "===",
+    "!=",
+    "!=="
+  ],
+  "requireCamelCaseOrUpperCaseIdentifiers": true,
+  "disallowMultipleLineStrings": true,
+  "disallowMultipleLineBreaks": true,
+  "disallowMixedSpacesAndTabs": "smart",
+  "disallowTrailingWhitespace": true,
+  "disallowTrailingComma": true,
+  "disallowKeywordsOnNewLine": ["else"],
+  "requireLineFeedAtFileEnd": true,
+  "maximumLineLength": 140,
+  "requireCapitalizedConstructors": true,
+  "requireDotNotation": true,
+  "disallowYodaConditions": true,
+  "requireSpaceAfterLineComment": "allowSlash",
+  "disallowNewlineBeforeBlockStatements": true,
+  "validateQuoteMarks": { "mark": "'", "escape": true },
+  "validateIndentation": 2,
+  "validateParameterSeparator": ", "
+}
