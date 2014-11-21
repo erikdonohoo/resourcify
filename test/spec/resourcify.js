@@ -110,10 +110,10 @@ describe('Service: Resourcify -', function () {
     }));
     beforeEach(function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId')
-             .request({method: 'GET', name: 'query', isArray: true})
-             .request({method: 'POST', name: '$save', isInstance: true})
-             .request({method: 'DELETE', name: '$delete', isInstance: true})
-             .create();
+            .request({method: 'GET', name: 'query', isArray: true})
+            .request({method: 'POST', name: '$save', isInstance: true})
+            .request({method: 'DELETE', name: '$delete', isInstance: true})
+            .create();
     });
     afterEach(function () {
       $http.verifyNoOutstandingExpectation();

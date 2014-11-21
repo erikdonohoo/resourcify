@@ -10,12 +10,10 @@ function renameFunction (name, fn) {
 
 function resourcificator ($http, $q, utils) {
 
-  var $resourcifyErr = angular.$$minErr('Resourcify');
-
   function Resourcify (name, url, config) {
 
     if (!name || !url) {
-      throw $resourcifyErr('badargs', 'Must supply a name and a url when constructing');
+      throw new Error('Must supply a name and a url when constructing');
     }
 
     this.url = $q.when(url);
@@ -66,7 +64,7 @@ function resourcificator ($http, $q, utils) {
 
   function addRequest (config, Constructor) {
     if (!config.method || !config.name) {
-      throw $resourcifyErr('badconfig', 'Request config must contain a HTTP method and a name');
+      throw new Error('Request config must contain a HTTP method and a name');
     }
 
     config.$Const = Constructor;
@@ -87,9 +85,8 @@ function resourcificator ($http, $q, utils) {
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
     $http(httpConfig).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
-        throw $resourcifyErr('arrayobj',
-                             'Saw array or object when expecting the opposite when making @{0} call to @{1}',
-                             config.method, url);
+        throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
+          ' call to ' + url);
       }
 
       // Build
@@ -133,7 +130,7 @@ function resourcificator ($http, $q, utils) {
       config.$Const.$$builder.url.then(function resolved(path) {
         doRequest(utils.replaceParams(params, path, value), value, config, success, err);
       }, function rejected() {
-        throw $resourcifyErr('urlresolution', 'Could not resolve URL for @{0}', config);
+        throw new Error('Could not resolve URL for ' + config);
       });
 
       return value;
@@ -146,23 +143,3 @@ function resourcificator ($http, $q, utils) {
 resourcificator.$inject = ['$http', '$q', 'resourcifyUtils'];
 
 angular.module('resourcify').service('Resourcify', resourcificator);
-
-/*
-
-Playing with ideas for API
-
-angular.module('resourcify').service('User', ['Resourcify', function (Resourcify) {
-
-    // Use chaning
-    return new Resourcify(name, (prom || string) url, config{$cache, constructor})
-    .before(['get'], someFn) // someFn is passed instance of this (for instance methods)
-    .after(['get'], someFn)
-    .method('stringName', someFn) // Adds a instance method
-    .request({method, name, isArray, isInstance}) // Adds a custom request
-    .create(); // This last call returns the Constructor that has been built
-
-    // How to handle nesting (Maybe it comes later)
-
-}]);
-
-*/
