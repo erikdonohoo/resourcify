@@ -3,25 +3,16 @@
   "browser": true,
   "esnext": true,
   "bitwise": false,
-  "camelcase": false,
-  "curly": true,
   "eqeqeq": true,
   "eqnull": true,
-  "immed": true,
-  "indent": 4,
   "latedef": true,
-  "newcap": true,
   "noarg": true,
-  "quotmark": "single",
   "regexp": true,
   "undef": true,
   "unused": true,
-  "smarttabs": true,
   "strict": true,
-  "trailing": true,
-  "smarttabs": true,
+  "boss": true,
   "globals": {
-    "angular": false,
-    "_": false
+    "angular": false
   }
 }

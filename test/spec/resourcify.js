@@ -139,4 +139,31 @@ describe('Service: Resourcify -', function () {
       expect(user.name).toBe('bob');
     });
   });
+
+  describe('cache', function () {
+    var User, $http;
+    beforeEach(inject(function (_$httpBackend_) {
+      $http = _$httpBackend_;
+    }));
+    beforeEach(function () {
+      User = new Resourcify('User', 'http://localhost/api/v1/users/:id/things/:thingId', {key: 'id'})
+      .request({method: 'GET', name: 'query', isArray: true})
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'DELETE', name: '$delete', isInstance: true})
+      .request({method: 'GET', name: '$get', isInstance: true})
+      .create();
+    });
+    afterEach(function () {
+      $http.verifyNoOutstandingExpectation();
+    });
+
+    it('should use same array reference for multiple calls', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var users = User.query();
+      $http.flush();
+      var users2 = User.query();
+      expect(users2).toBe(users);
+    });
+  });
 });

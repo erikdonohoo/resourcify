@@ -8,7 +8,7 @@ function renameFunction (name, fn) {
 }
 /* jshint evil: false */
 
-function resourcificator ($http, $q, utils) {
+function resourcificator ($http, $q, utils, Cache) {
 
   function Resourcify (name, url, config) {
 
@@ -27,6 +27,10 @@ function resourcificator ($http, $q, utils) {
       (that.config.constructor || angular.noop).bind(this)(data);
     });
     this.$$ResourceConstructor.$$builder = this;
+
+    if (this.config.cache) {
+      this.cache = Cache.createCache({});
+    }
   }
 
   /* Will come eventually
@@ -94,8 +98,14 @@ function resourcificator ($http, $q, utils) {
         angular.forEach(response.data, function (item) {
           value.push(typeof item === 'object' ? new config.$Const(item) : item);
         });
+        if (config.$Const.$$builder.cache && !config.$Const.$$builder.cache.getList(url)) {
+          value = config.$Const.$$builder.cache.addList(url, value);
+        }
       } else {
         value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
+        if (config.$Const.$$builder.cache && !config.$Const.$$builder.cache.get(config.$Const.$$builder.cache.getKey(value))) {
+          value = config.$Const.$$builder.cache.add(value);
+        }
       }
 
       value.$resolved = true;
@@ -112,6 +122,7 @@ function resourcificator ($http, $q, utils) {
   function generateRequest (config) {
     return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
+
       if (angular.isFunction(params)) {
         err = success || angular.noop;
         success = params;
@@ -133,6 +144,8 @@ function resourcificator ($http, $q, utils) {
         throw new Error('Could not resolve URL for ' + config);
       });
 
+      // TODO Before this gets returned, we need to set it to a new value if its not in the cache,
+      // or the exact value it needs to be from the cache if it exists there
       return value;
     };
   }
@@ -140,6 +153,6 @@ function resourcificator ($http, $q, utils) {
   return Resourcify;
 }
 
-resourcificator.$inject = ['$http', '$q', 'resourcifyUtils'];
+resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache'];
 
 angular.module('resourcify').service('Resourcify', resourcificator);

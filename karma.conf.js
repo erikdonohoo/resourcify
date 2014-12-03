@@ -48,7 +48,7 @@ module.exports = function(config) {
 
     // Continuous Integration mode
     // if true, it capture browsers, run tests and exit
-    singleRun: false,
+    singleRun: true,
 
     // How long does Karma wait for a message from a browser before disconnecting it (in ms).
     browserNoActivityTimeout: 100000 /* no matter how high you set it, it'll max to 86 seconds... weird */
