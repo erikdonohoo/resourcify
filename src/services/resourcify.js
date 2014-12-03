@@ -29,7 +29,7 @@ function resourcificator ($http, $q, utils, Cache) {
     this.$$ResourceConstructor.$$builder = this;
 
     if (this.config.cache) {
-      this.cache = Cache.createCache({});
+      this.cache = Cache.createCache(this.config.cache);
     }
   }
 
@@ -122,6 +122,7 @@ function resourcificator ($http, $q, utils, Cache) {
   function generateRequest (config) {
     return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
+      var cache = config.$Const.$$builder.cache;
 
       if (angular.isFunction(params)) {
         err = success || angular.noop;
@@ -137,15 +138,36 @@ function resourcificator ($http, $q, utils, Cache) {
       value.$promise = config.$defer.promise;
       value.$resolved = false;
 
-      // Resolve path
-      config.$Const.$$builder.url.then(function resolved(path) {
-        doRequest(utils.replaceParams(params, path, value), value, config, success, err);
-      }, function rejected() {
-        throw new Error('Could not resolve URL for ' + config);
-      });
+      // Check if what we are requesting is already in the cache
+      var firstTime = false;
+      if (cache) {
+        if (!angular.isArray(value)) {
+          var cValue = cache.get(cache.getKey(value));
+          if (cValue) {
+            value = cValue;
+          } else {
+            firstTime = true;
+          }
+        } else if (config.$Const.$$builder.$path) {
+          var lValue = cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value));
+          if (lValue) {
+            value = lValue;
+          }
+        } else {
+          firstTime = true;
+        }
+      }
 
-      // TODO Before this gets returned, we need to set it to a new value if its not in the cache,
-      // or the exact value it needs to be from the cache if it exists there
+      // Resolve path
+      if ((cache && (value.$$invalid || firstTime)) || !cache) {
+        config.$Const.$$builder.url.then(function resolved(path) {
+          config.$Const.$$builder.$path = path;
+          doRequest(utils.replaceParams(params, path, value), value, config, success, err);
+        }, function rejected() {
+          throw new Error('Could not resolve URL for ' + config);
+        });
+      }
+
       return value;
     };
   }

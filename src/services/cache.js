@@ -21,7 +21,7 @@ function ResourcifyCache() {
 
     if (!cache[key[key.length - 1]]) {
       angular.forEach(this.$lists, function (val) {
-        val.invalidated = true;
+        val.$$invalidated = true;
       });
       return cache[key[key.length - 1]] = item;
     } else {
@@ -65,19 +65,17 @@ function ResourcifyCache() {
   };
 
   Cache.prototype.getList = function (key) {
-    return this.$lists[key] ? this.$lists[key].list : null;
+    return this.$lists[key] ? this.$lists[key] : null;
   };
 
   Cache.prototype.addList = function (key, list) {
     if (!this.$lists[key]) {
-      this.$lists[key] = {
-        list: list
-      };
+      this.$lists[key] = list;
     } else {
       // TODO Needs to merge values
-      Array.prototype.push.apply(this.$lists[key].list, list);
+      Array.prototype.push.apply(this.$lists[key], list);
     }
-    return this.$lists[key].list;
+    return this.$lists[key];
   };
 
   return {

@@ -32,6 +32,7 @@
     "jasmine": false,
     "spyOn": false,
     "xit": false,
+    "xdescribe": false,
     "objectifyQueryParams": false
   }
 }
