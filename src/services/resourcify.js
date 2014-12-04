@@ -30,6 +30,7 @@ function resourcificator ($http, $q, utils, Cache) {
 
     if (this.config.cache) {
       this.cache = Cache.createCache(this.config.cache);
+      this.$$ResourceConstructor.$clearCache = this.cache.clear;
     }
   }
 
@@ -104,8 +105,13 @@ function resourcificator ($http, $q, utils, Cache) {
       } else {
         value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
         if (config.$Const.$$builder.cache) {
-          value = config.$Const.$$builder.cache.add(value);
+          value = config.$Const.$$builder.cache.add(value, (config.method === 'POST' ? true : false));
         }
+      }
+
+      // We just updated the value, so cache is good now
+      if (config.$Const.$$builder.cache) {
+        value.$invalid = false;
       }
 
       value.$resolved = true;
@@ -142,7 +148,14 @@ function resourcificator ($http, $q, utils, Cache) {
       var firstTime = false;
       if (cache) {
         if (!angular.isArray(value)) {
+          console.log(value);
+          console.log(cache.getKey(value));
           var cValue = cache.get(cache.getKey(value));
+          console.log(cValue);
+          angular.forEach(cache.$cache, function (item) {
+            console.log(item);
+          });
+          console.log(cache.$cache);
           if (cValue) {
             value = cValue;
           } else {
@@ -159,6 +172,8 @@ function resourcificator ($http, $q, utils, Cache) {
       }
 
       // Resolve path
+      // TODO Could be a concurrency issue here when 2 calls happen at same time before one completes
+      // There will be 2 'value' values and only one can be used in the end
       if ((cache && (value.$$invalid || firstTime)) || !cache) {
         config.$Const.$$builder.url.then(function resolved(path) {
           config.$Const.$$builder.$path = path;

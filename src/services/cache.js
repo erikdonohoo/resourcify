@@ -8,10 +8,11 @@ function ResourcifyCache() {
     this.$lists = {};
   }
 
-  Cache.prototype.add = function (item) {
+  Cache.prototype.add = function (item, postCall) {
     // If cache contains item, update it
     // If cache doesn't contain item, add it
     // and reset query
+    console.log('add', item);
     var key = this.getKey(item);
     var cache = this.$cache;
     for (var i = 0; i < key.length - 1; i++) {
@@ -20,9 +21,16 @@ function ResourcifyCache() {
     }
 
     if (!cache[key[key.length - 1]]) {
-      angular.forEach(this.$lists, function (val) {
-        val.$$invalidated = true;
-      });
+      if (postCall) {
+        angular.forEach(this.$lists, function (val) {
+          val.$$invalid = true;
+        });
+      }
+      var that = this;
+      // Self-removing function from cache
+      item.$clearCache = function () {
+        that.remove(that.getKey(this));
+      }.bind(item);
       return cache[key[key.length - 1]] = item;
     } else {
       return angular.extend(cache[key[key.length - 1]], item);
@@ -46,11 +54,13 @@ function ResourcifyCache() {
     for (var i = 0; i < key.length - 1; i++) {
       cache = cache[key[i]];
     }
+    // TODO May need to consider what to do with arrays that refence this item that is being removed
     delete cache[key[key.length - 1]];
   };
 
   Cache.prototype.clear = function () {
     this.$cache = {};
+    this.$lists = {};
   };
 
   Cache.prototype.get = function (key) {
@@ -72,6 +82,7 @@ function ResourcifyCache() {
     if (!this.$lists[key]) {
       this.$lists[key] = list;
     } else {
+      // Merge lists, add new values to cache
       angular.forEach(list, function (newItem) {
         var match = false;
         newItem = this.add(newItem);

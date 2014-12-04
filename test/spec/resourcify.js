@@ -12,7 +12,7 @@ describe('Service: Resourcify -', function () {
     Resourcify = _Resourcify_;
   }));
 
-  xdescribe('constructor', function () {
+  describe('constructor', function () {
     var $timeout, $q;
     beforeEach(inject(function (_$timeout_, _$q_) {
       $timeout = _$timeout_;
@@ -66,7 +66,7 @@ describe('Service: Resourcify -', function () {
     });
   });
 
-  xdescribe('method', function () {
+  describe('method', function () {
     var UserBuilder;
     beforeEach(function () {
       UserBuilder = new Resourcify('User', 'http://localhost/api/users/:userId/boats', {constructor: function () {
@@ -102,7 +102,7 @@ describe('Service: Resourcify -', function () {
     });
   });
 
-  xdescribe('request', function () {
+  describe('request', function () {
     var User, $http;
 
     beforeEach(inject(function (_$httpBackend_) {
@@ -146,8 +146,9 @@ describe('Service: Resourcify -', function () {
       $http = _$httpBackend_;
     }));
     beforeEach(function () {
-      User = new Resourcify('User', 'http://localhost/api/v1/users/:id/things/:thingId', {cache: {key: 'id'}})
+      User = new Resourcify('User', 'http://localhost/api/v1/users/:id', {cache: {key: 'id'}})
       .request({method: 'GET', name: 'query', isArray: true})
+      .request({method: 'GET', name: 'get'})
       .request({method: 'POST', name: '$save', isInstance: true})
       .request({method: 'DELETE', name: '$delete', isInstance: true})
       .request({method: 'GET', name: '$get', isInstance: true})
@@ -164,6 +165,17 @@ describe('Service: Resourcify -', function () {
       $http.flush();
       var users2 = User.query();
       expect(users2).toBe(users);
+    });
+
+    it('should not request when item is cached from query call', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var users = User.query();
+      $http.flush();
+      var user1 = users[0].$get();
+      expect(user1).toBe(users[0]);
+      // var user = User.get({id: 123});
+      // expect(user).toBe(users[0]);
     });
   });
 });
