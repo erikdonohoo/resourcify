@@ -98,12 +98,12 @@ function resourcificator ($http, $q, utils, Cache) {
         angular.forEach(response.data, function (item) {
           value.push(typeof item === 'object' ? new config.$Const(item) : item);
         });
-        if (config.$Const.$$builder.cache && !config.$Const.$$builder.cache.getList(url)) {
+        if (config.$Const.$$builder.cache) {
           value = config.$Const.$$builder.cache.addList(url, value);
         }
       } else {
         value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
-        if (config.$Const.$$builder.cache && !config.$Const.$$builder.cache.get(config.$Const.$$builder.cache.getKey(value))) {
+        if (config.$Const.$$builder.cache) {
           value = config.$Const.$$builder.cache.add(value);
         }
       }

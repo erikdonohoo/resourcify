@@ -72,8 +72,18 @@ function ResourcifyCache() {
     if (!this.$lists[key]) {
       this.$lists[key] = list;
     } else {
-      // TODO Needs to merge values
-      Array.prototype.push.apply(this.$lists[key], list);
+      angular.forEach(list, function (newItem) {
+        var match = false;
+        newItem = this.add(newItem);
+        angular.forEach(this.$lists[key], function (item) {
+          if (newItem === item) {
+            match = true;
+          }
+        }.bind(this));
+        if (!match) {
+          this.$lists[key].push(newItem);
+        }
+      }.bind(this));
     }
     return this.$lists[key];
   };
