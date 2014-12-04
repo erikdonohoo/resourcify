@@ -8,7 +8,7 @@ function renameFunction (name, fn) {
 }
 /* jshint evil: false */
 
-function resourcificator ($http, $q, utils, Cache) {
+function resourcificator ($http, $q, utils, Cache, $timeout) {
 
   function Resourcify (name, url, config) {
 
@@ -76,8 +76,14 @@ function resourcificator ($http, $q, utils, Cache) {
 
     if (config.isInstance) {
       Constructor.prototype[config.name] = generateRequest(config);
+      if (config.$Const.$$builder.cache) {
+        Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
+      }
     } else {
       Constructor[config.name] = generateRequest(config);
+      if (config.$Const.$$builder.cache) {
+        Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
+      }
     }
   }
 
@@ -94,23 +100,24 @@ function resourcificator ($http, $q, utils, Cache) {
           ' call to ' + url);
       }
 
-      // Build
+      // Build item and handle cache
+      var cache = config.$Const.$$builder.cache;
       if (config.isArray) {
         angular.forEach(response.data, function (item) {
           value.push(typeof item === 'object' ? new config.$Const(item) : item);
         });
-        if (config.$Const.$$builder.cache) {
-          value = config.$Const.$$builder.cache.addList(url, value);
+        if (cache) {
+          value = cache.addList(url, value);
         }
       } else {
         value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
-        if (config.$Const.$$builder.cache) {
-          value = config.$Const.$$builder.cache.add(value, (config.method === 'POST' ? true : false));
+        if (cache) {
+          value = cache.add(value, (config.method === 'POST' ? true : false));
         }
       }
 
       // We just updated the value, so cache is good now
-      if (config.$Const.$$builder.cache) {
+      if (cache) {
         value.$invalid = false;
       }
 
@@ -145,17 +152,11 @@ function resourcificator ($http, $q, utils, Cache) {
       value.$resolved = false;
 
       // Check if what we are requesting is already in the cache
+      // If so, make sure initial 'value' is from the cache
       var firstTime = false;
       if (cache) {
         if (!angular.isArray(value)) {
-          console.log(value);
-          console.log(cache.getKey(value));
-          var cValue = cache.get(cache.getKey(value));
-          console.log(cValue);
-          angular.forEach(cache.$cache, function (item) {
-            console.log(item);
-          });
-          console.log(cache.$cache);
+          var cValue = cache.get(cache.getKey(angular.extend({}, params, value)));
           if (cValue) {
             value = cValue;
           } else {
@@ -174,12 +175,18 @@ function resourcificator ($http, $q, utils, Cache) {
       // Resolve path
       // TODO Could be a concurrency issue here when 2 calls happen at same time before one completes
       // There will be 2 'value' values and only one can be used in the end
-      if ((cache && (value.$$invalid || firstTime)) || !cache) {
+      if ((cache && (value.$$invalid || firstTime)) || !cache || config.$force) {
         config.$Const.$$builder.url.then(function resolved(path) {
-          config.$Const.$$builder.$path = path;
+          config.$Const.$$builder.$path = config.$Const.$$builder.$path || path;
           doRequest(utils.replaceParams(params, path, value), value, config, success, err);
         }, function rejected() {
           throw new Error('Could not resolve URL for ' + config);
+        });
+      } else {
+        $timeout(function () {
+          value.$resolved = true;
+          success(value);
+          config.$defer.resolve(value);
         });
       }
 
@@ -190,6 +197,6 @@ function resourcificator ($http, $q, utils, Cache) {
   return Resourcify;
 }
 
-resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache'];
+resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache', '$timeout'];
 
 angular.module('resourcify').service('Resourcify', resourcificator);

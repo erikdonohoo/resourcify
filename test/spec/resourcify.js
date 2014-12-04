@@ -174,8 +174,20 @@ describe('Service: Resourcify -', function () {
       $http.flush();
       var user1 = users[0].$get();
       expect(user1).toBe(users[0]);
-      // var user = User.get({id: 123});
-      // expect(user).toBe(users[0]);
+      var user = User.get({id: 123});
+      expect(user).toBe(users[0]);
+    });
+
+    it('should be able to force a request and still keep correct references', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var users = User.query();
+      $http.flush();
+      $http.expectGET('http://localhost/api/v1/users/123')
+      .respond({id: 123, name: 'joe', friend: true});
+      var user = User.get.force({id: 123});
+      $http.flush();
+      expect(user).toBe(users[0]);
     });
   });
 });

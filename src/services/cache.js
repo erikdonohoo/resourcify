@@ -12,7 +12,6 @@ function ResourcifyCache() {
     // If cache contains item, update it
     // If cache doesn't contain item, add it
     // and reset query
-    console.log('add', item);
     var key = this.getKey(item);
     var cache = this.$cache;
     for (var i = 0; i < key.length - 1; i++) {
@@ -33,7 +32,8 @@ function ResourcifyCache() {
       }.bind(item);
       return cache[key[key.length - 1]] = item;
     } else {
-      return angular.extend(cache[key[key.length - 1]], item);
+      angular.extend(cache[key[key.length - 1]], item);
+      return cache[key[key.length - 1]];
     }
   };
 
@@ -81,6 +81,9 @@ function ResourcifyCache() {
   Cache.prototype.addList = function (key, list) {
     if (!this.$lists[key]) {
       this.$lists[key] = list;
+      angular.forEach(list, function (item) {
+        this.add(item);
+      }.bind(this));
     } else {
       // Merge lists, add new values to cache
       angular.forEach(list, function (newItem) {
