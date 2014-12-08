@@ -1,6 +1,6 @@
 {
   "name": "resourcify",
-  "version": "0.2.0-beta.1",
+  "version": "0.1.0",
   "authors": [
     "Erik Donohoo <erikdonohoo@gmail.com>"
   ],
@@ -21,7 +21,6 @@
     "$resource"
   ],
   "license": "MIT",
-  "private": false,
   "ignore": [
     "**/.*",
     "node_modules",
