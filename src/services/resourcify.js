@@ -34,25 +34,6 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
     }
   }
 
-  /* Will come eventually
-  // Add before after functions
-  var beforeAfter = function (when) {
-    return function (fn) {
-      console.log(when, fn);
-    }.bind(this);
-  };
-
-  Resourcify.prototype.before = function (methods, fn) {
-    beforeAfter('before').bind(this)(methods, fn);
-    return this;
-  };
-
-  Resourcify.prototype.after = function (methods, fn) {
-    beforeAfter('after').bind(this)(methods, fn);
-    return this;
-  };
-  */
-
   Resourcify.prototype.method = function (name, fn) {
     this.$$ResourceConstructor.prototype[name] = fn;
     return this;
@@ -87,55 +68,11 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
     }
   }
 
-  function doRequest (url, value, config, success, error) {
-    var httpConfig = {
-      url: url,
-      method: config.method
-    };
-
-    httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-    $http(httpConfig).then(function ok(response) {
-      if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
-        throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
-          ' call to ' + url);
-      }
-
-      // Build item and handle cache
-      var cache = config.$Const.$$builder.cache;
-      if (config.isArray) {
-        angular.forEach(response.data, function (item) {
-          value.push(typeof item === 'object' ? new config.$Const(item) : item);
-        });
-        if (cache) {
-          value = cache.addList(url, value);
-        }
-      } else {
-        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
-        if (cache) {
-          value = cache.add(value, (config.method === 'POST' ? true : false));
-        }
-      }
-
-      // We just updated the value, so cache is good now
-      if (cache) {
-        value.$invalid = false;
-      }
-
-      value.$resolved = true;
-      value.$url = url;
-      success(value);
-      config.$defer.resolve(value);
-
-    }, function rejection(err) {
-      error(err);
-      config.$defer.reject(err);
-    });
-  }
-
   function generateRequest (config) {
     return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
       var cache = config.$Const.$$builder.cache;
+      config.$Const.pending = config.$Const.pending || [];
 
       if (angular.isFunction(params)) {
         err = success || angular.noop;
@@ -160,6 +97,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
           if (cValue) {
             value = cValue;
           } else {
+            // Add value to cache
             firstTime = true;
           }
         } else if (config.$Const.$$builder.$path) {
@@ -178,7 +116,65 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       if ((cache && (value.$$invalid || firstTime)) || !cache || config.$force) {
         config.$Const.$$builder.url.then(function resolved(path) {
           config.$Const.$$builder.$path = config.$Const.$$builder.$path || path;
-          doRequest(utils.replaceParams(params, path, value), value, config, success, err);
+          var url = utils.replaceParams(params, path, value);
+
+          var httpConfig = {
+            url: url,
+            method: config.method
+          };
+
+          // See if someone beat it to the punch
+          if (cache) {
+            if (config.isArray) {
+              if (!cache.getList(url)) {
+                value = cache.addList(url, value);
+              } else {
+                value = cache.getList(url);
+                console.log('leaving');
+                return;
+              }
+            } else if (cache.get(cache.getKey(angular.extend({}, params, value)))) {
+              value = cache.get(cache.getKey(angular.extend({}, params, value)));
+              return;
+            }
+          }
+
+          httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
+          $http(httpConfig).then(function ok(response) {
+            if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
+              throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
+              ' call to ' + url);
+            }
+
+            // Build item and handle cache
+            if (config.isArray) {
+              angular.forEach(response.data, function (item) {
+                value.push(typeof item === 'object' ? new config.$Const(item) : item);
+              });
+              if (cache) {
+                value = cache.addList(url, value);
+              }
+            } else {
+              value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
+              if (cache) {
+                value = cache.add(value, (config.method === 'POST' ? true : false));
+              }
+            }
+
+            // We just updated the value, so cache is good now
+            if (cache) {
+              value.$$invalid = false;
+            }
+
+            value.$resolved = true;
+            value.$url = url;
+            success(value);
+            config.$defer.resolve(value);
+
+          }, function rejection(issue) {
+            err(issue);
+            config.$defer.reject(issue);
+          });
         }, function rejected() {
           throw new Error('Could not resolve URL for ' + config);
         });

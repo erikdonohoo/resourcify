@@ -102,9 +102,9 @@ describe('Service: Resourcify -', function () {
     });
   });
 
-  describe('request', function () {
+  xdescribe('request', function () {
     var User, $http;
-
+    console.log('uoh');
     beforeEach(inject(function (_$httpBackend_) {
       $http = _$httpBackend_;
     }));
@@ -158,7 +158,7 @@ describe('Service: Resourcify -', function () {
       $http.verifyNoOutstandingExpectation();
     });
 
-    it('should use same array reference for multiple calls', function () {
+    xit('should use same array reference for multiple calls', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
       var users = User.query();
@@ -167,7 +167,7 @@ describe('Service: Resourcify -', function () {
       expect(users2).toBe(users);
     });
 
-    it('should not request when item is cached from query call', function () {
+    xit('should not request when item is cached from query call', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
       var users = User.query();
@@ -178,7 +178,7 @@ describe('Service: Resourcify -', function () {
       expect(user).toBe(users[0]);
     });
 
-    it('should be able to force a request and still keep correct references', function () {
+    xit('should be able to force a request and still keep correct references', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
       var users = User.query();
@@ -188,6 +188,16 @@ describe('Service: Resourcify -', function () {
       var user = User.get.force({id: 123});
       $http.flush();
       expect(user).toBe(users[0]);
+    });
+
+    it('should handle two concurrent calls and still keep reference the same', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var users1 = User.query();
+      var users2 = User.query();
+      $http.flush();
+      expect(users1).toBe(users2);
+      expect(users1[0]).toBe(users2[0]);
     });
   });
 });
