@@ -15,7 +15,10 @@
   },
   "keywords": [
     "angular",
-    "javascript"
+    "javascript",
+    "resource",
+    "$http",
+    "$resource"
   ],
   "license": "MIT",
   "private": true,
