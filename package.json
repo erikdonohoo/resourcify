@@ -1,6 +1,6 @@
 {
   "name": "resourcify",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.1",
   "description": "Dead simple rich data models for angular",
   "main": "Gruntfile.js",
   "scripts": {
