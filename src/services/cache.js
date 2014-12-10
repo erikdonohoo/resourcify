@@ -80,13 +80,11 @@ function ResourcifyCache() {
 
   Cache.prototype.addList = function (key, list) {
     if (!this.$lists[key]) {
-      console.log('first');
       this.$lists[key] = list;
       angular.forEach(list, function (item) {
         this.add(item);
       }.bind(this));
     } else {
-      console.log('merge');
       // Merge lists, add new values to cache
       angular.forEach(list, function (newItem) {
         var match = false;
