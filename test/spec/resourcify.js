@@ -141,9 +141,10 @@ describe('Service: Resourcify -', function () {
   });
 
   describe('cache', function () {
-    var User, $http;
-    beforeEach(inject(function (_$httpBackend_) {
+    var User, $http, $q;
+    beforeEach(inject(function (_$httpBackend_, _$q_) {
       $http = _$httpBackend_;
+      $q = _$q_;
     }));
     beforeEach(function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:id', {cache: {key: 'id'}})
@@ -164,7 +165,9 @@ describe('Service: Resourcify -', function () {
       var users = User.query();
       $http.flush();
       var users2 = User.query();
-      expect(users2).toBe(users);
+      $q.all([users2, users]).then(function (list) {
+        expect(list[0]).toBe(list[1]);
+      });
     });
 
     it('should not request when item is cached from query call', function () {
@@ -172,10 +175,16 @@ describe('Service: Resourcify -', function () {
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
       var users = User.query();
       $http.flush();
-      var user1 = users[0].$get();
-      expect(user1).toBe(users[0]);
-      var user = User.get({id: 123});
-      expect(user).toBe(users[0]);
+      users.then(function (list) {
+        var user1prom = list[0].$get();
+        user1prom.then(function (item) {
+          expect(item).toBe(list[0]);
+          var user = User.get({id: 123});
+          user.then(function (u) {
+            expect(u).toBe(item);
+          });
+        });
+      });
     });
 
     it('should be able to force a request and still keep correct references', function () {
@@ -187,7 +196,9 @@ describe('Service: Resourcify -', function () {
       .respond({id: 123, name: 'joe', friend: true});
       var user = User.get.force({id: 123});
       $http.flush();
-      expect(user).toBe(users[0]);
+      $q.all([user, users]).then(function (list) {
+        expect(list[0]).toBe(list[1][0]);
+      });
     });
   });
 });

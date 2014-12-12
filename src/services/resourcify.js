@@ -34,25 +34,6 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
     }
   }
 
-  /* Will come eventually
-  // Add before after functions
-  var beforeAfter = function (when) {
-    return function (fn) {
-      console.log(when, fn);
-    }.bind(this);
-  };
-
-  Resourcify.prototype.before = function (methods, fn) {
-    beforeAfter('before').bind(this)(methods, fn);
-    return this;
-  };
-
-  Resourcify.prototype.after = function (methods, fn) {
-    beforeAfter('after').bind(this)(methods, fn);
-    return this;
-  };
-  */
-
   Resourcify.prototype.method = function (name, fn) {
     this.$$ResourceConstructor.prototype[name] = fn;
     return this;
@@ -156,15 +137,17 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       var firstTime = false;
       if (cache) {
         if (!angular.isArray(value)) {
-          var cValue = cache.get(cache.getKey(angular.extend({}, params, value)));
+          var cValue = $q.when(cache.get(cache.getKey(angular.extend({}, params, value))));
           if (cValue) {
+            cValue.$promise = value.$promise;
             value = cValue;
           } else {
             firstTime = true;
           }
         } else if (config.$Const.$$builder.$path) {
-          var lValue = cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value));
+          var lValue = $q.when(cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value)));
           if (lValue) {
+            lValue.$promise = value.$promise;
             value = lValue;
           }
         } else {
@@ -190,7 +173,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
         });
       }
 
-      return value;
+      return cache ? value.$promise : value;
     };
   }
 
