@@ -84,13 +84,11 @@ function ResourcifyCache() {
 
   Cache.prototype.addList = function (key, list) {
     if (!this.$lists[key]) {
-      console.log('first');
       this.$lists[key] = list;
       angular.forEach(list, function (item) {
         this.add(item);
       }.bind(this));
     } else {
-      console.log('merge');
       // Merge lists, add new values to cache
       angular.forEach(list, function (newItem) {
         var match = false;
@@ -185,11 +183,55 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
     }
   }
 
+  function doRequest (url, value, config, success, error) {
+    var httpConfig = {
+      url: url,
+      method: config.method
+    };
+
+    httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
+    $http(httpConfig).then(function ok(response) {
+      if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
+        throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
+          ' call to ' + url);
+      }
+
+      // Build item and handle cache
+      var cache = config.$Const.$$builder.cache;
+      if (config.isArray) {
+        angular.forEach(response.data, function (item) {
+          value.push(typeof item === 'object' ? new config.$Const(item) : item);
+        });
+        if (cache) {
+          value = cache.addList(url, value);
+        }
+      } else {
+        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
+        if (cache) {
+          value = cache.add(value, (config.method === 'POST' ? true : false));
+        }
+      }
+
+      // We just updated the value, so cache is good now
+      if (cache) {
+        value.$invalid = false;
+      }
+
+      value.$resolved = true;
+      value.$url = url;
+      success(value);
+      config.$defer.resolve(value);
+
+    }, function rejection(err) {
+      error(err);
+      config.$defer.reject(err);
+    });
+  }
+
   function generateRequest (config) {
     return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
       var cache = config.$Const.$$builder.cache;
-      config.$Const.pending = config.$Const.pending || [];
 
       if (angular.isFunction(params)) {
         err = success || angular.noop;
@@ -210,16 +252,17 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       var firstTime = false;
       if (cache) {
         if (!angular.isArray(value)) {
-          var cValue = cache.get(cache.getKey(angular.extend({}, params, value)));
+          var cValue = $q.when(cache.get(cache.getKey(angular.extend({}, params, value))));
           if (cValue) {
+            cValue.$promise = value.$promise;
             value = cValue;
           } else {
-            // Add value to cache
             firstTime = true;
           }
         } else if (config.$Const.$$builder.$path) {
-          var lValue = cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value));
+          var lValue = $q.when(cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value)));
           if (lValue) {
+            lValue.$promise = value.$promise;
             value = lValue;
           }
         } else {
@@ -233,65 +276,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       if ((cache && (value.$$invalid || firstTime)) || !cache || config.$force) {
         config.$Const.$$builder.url.then(function resolved(path) {
           config.$Const.$$builder.$path = config.$Const.$$builder.$path || path;
-          var url = utils.replaceParams(params, path, value);
-
-          var httpConfig = {
-            url: url,
-            method: config.method
-          };
-
-          // See if someone beat it to the punch
-          if (cache) {
-            if (config.isArray) {
-              if (!cache.getList(url)) {
-                value = cache.addList(url, value);
-              } else {
-                value = cache.getList(url);
-                console.log('leaving');
-                return;
-              }
-            } else if (cache.get(cache.getKey(angular.extend({}, params, value)))) {
-              value = cache.get(cache.getKey(angular.extend({}, params, value)));
-              return;
-            }
-          }
-
-          httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-          $http(httpConfig).then(function ok(response) {
-            if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
-              throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
-              ' call to ' + url);
-            }
-
-            // Build item and handle cache
-            if (config.isArray) {
-              angular.forEach(response.data, function (item) {
-                value.push(typeof item === 'object' ? new config.$Const(item) : item);
-              });
-              if (cache) {
-                value = cache.addList(url, value);
-              }
-            } else {
-              value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
-              if (cache) {
-                value = cache.add(value, (config.method === 'POST' ? true : false));
-              }
-            }
-
-            // We just updated the value, so cache is good now
-            if (cache) {
-              value.$$invalid = false;
-            }
-
-            value.$resolved = true;
-            value.$url = url;
-            success(value);
-            config.$defer.resolve(value);
-
-          }, function rejection(issue) {
-            err(issue);
-            config.$defer.reject(issue);
-          });
+          doRequest(utils.replaceParams(params, path, value), value, config, success, err);
         }, function rejected() {
           throw new Error('Could not resolve URL for ' + config);
         });
@@ -303,7 +288,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
         });
       }
 
-      return value;
+      return cache ? value.$promise : value;
     };
   }
 
