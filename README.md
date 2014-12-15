@@ -1,6 +1,9 @@
 # Resourcify
 Resourcify lets you have rich data models in your angular project that rock!  You can get rid of those long controllers with code that manipulates your models and move it where it belongs, into your models themselves!  It even includes smart caching that you can turn on to optimize your network requests.
 
+## WARNING
+Resourcify is under active development.  Things are starting to stabilize, but things are still subject to change.
+
 ## 1. Create a Builder
 Resourcify lets you make a `ResourcifyBuilder` that you can add all kinds of goodies onto for your backend requests and any other model manipulation you want to perform.  Creating a new builder is as simple as this:
 
@@ -149,8 +152,44 @@ User.query().then(function putUsersOnScope(users) {
 });
 ```
 ## Using the Cache
+If your app is resource hungry and you want to cut down on the requests being made, you can use the cache built into Resourcify to be more intelligent about when to make requests for resources.
 
+To configure and setup the cache, use the `cache` property when you create your Builder.  In the 3rd parameter `config` object, add another property `cache`.  This should be an object with the following options.
 
 #### key
+Type: `string` `array [string]`  
+Default: `['id']`
+
+This is the property or properties on your instances that can be used to uniquely identify your objects.  If your objects have an `id` property that is used to uniquely identify them from your server, then set `key` to the string `id`.  If you need ot use multiple properties to uniquely identify it, set `key` to an array of strings that represent the property names to use.
+
 #### id
+Type: `string`  
+Default: `'id'`
+
+If your server returns `null` on successful PUT or POST requests that create new resources and instead returns the `Location` header, you can set the `id` property to be the value on your objects that should represent your id (if you have one).  As long as your server sends the `Access-Control-Expose-Headers` header with the value `Location`, then Resourcify will pull the end of this url off and set the `id` property on the object that was just saved.
+
 #### saveMethod
+Type: `string`  
+Default: `'POST'`
+
+If you create new resources with requests of a different method, then you can change that here.  This way the cache knows when to invalidate certain things as new thigns are added to the server.
+
+### Getting Around the Cache
+Sometimes you need to clear the cache.  Sometimes you want to make a request and have it go through even though you have a value cached.  There are a few ways to do this.
+
+#### Force Request
+For every `request` you build, when you are using the cache there is an extra request created to 'force' a request.  If you created a request called `query` and you want to bypass the cache and force an $http request to the server, you can call `Model.query.force` and use it the same as the normal `Model.query`.
+
+#### Clear Cache
+Each Resourcify model keeps track of every object and list that has been retrieved using its request methods.  For every unique object you have retrieved from the server or saved to the server, there exists only one copy of it ever in memory.  If you use a request to get a specific instance of a model on one page, and do that again on another page, you can be sure they are indeed the same object.  If you want to clear the cache for a specific object, you can call the function `$clearCache` that has been added on to it by Resourcify.  If you want to invalidate *ALL* objects for a specific model and all query requests with any combination of query params, you can call `$clearCache` from the Model constructor itself.
+
+```javascript
+// Some instance of a user
+user.$clearCache();
+
+// This request will get to the server
+user.$get();
+
+// Let's clear all users anywhere in our app so that next time we see them they are re-requested
+User.$clearCache();
+```
