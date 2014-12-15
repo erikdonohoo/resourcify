@@ -4,6 +4,16 @@ Resourcify lets you have rich data models in your angular project that rock!  Yo
 ## WARNING
 Resourcify is under active development.  Things are starting to stabilize, but things are still subject to change.
 
+## Installation
+
+Use bower: `bower install --save resourcify`
+
+Then add to your module as a dependency
+
+```javascript
+angular.module('myMod', ['resourcify']);
+```
+
 ## 1. Create a Builder
 Resourcify lets you make a `ResourcifyBuilder` that you can add all kinds of goodies onto for your backend requests and any other model manipulation you want to perform.  Creating a new builder is as simple as this:
 
