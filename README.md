@@ -1,9 +1,7 @@
 # Resourcify
-
 Resourcify lets you have rich data models in your angular project that rock!  You can get rid of those long controllers with code that manipulates your models and move it where it belongs, into your models themselves!  It even includes smart caching that you can turn on to optimize your network requests.
 
 ## Create a Builder
-
 Resourcify lets you make a `ResourcifyBuilder` that you can add all kinds of goodies onto for your backend requests and any other model manipulation you want to perform.  Creating a new builder is as simple as this:
 
 `var UserBuilder = new Resourcify(name, url, config)`
@@ -34,16 +32,13 @@ Query parameters that are defined with values in the url will always stay.  Any 
 
 **Note**
 
-Values passed as query params vs values that are on the model are more aggressively added as query params.  For example, with our same url, if we supplied `{bob: 'dude', ext: 'pdf'}` as query parameters and `thing` and `id` could not be found on the model, the url would end up being:
+> Values passed as query params vs values that are on the model are more aggressively added as query params.  For example, with our same url, if we supplied `{bob: 'dude', ext: 'pdf'}` as query parameters and `thing` and `id` could not be found on the model, the url would end up being:
 
-`http://127.0.0.1:8085/api/v1/dude?yes=no&ext=pdf`
+> `http://127.0.0.1:8085/api/v1/dude?yes=no&ext=pdf`
 
-Even though `ext` was a part of the `url` path, because `id` wasn't supplied the path collapsed down to that point, and any remaning query params passed that can't be found as replacements in the url, are added as additional query params on the resulting path.  Be aware of how urls are collapsed.  They can be very powerful but you must understand them.
+> Even though `ext` was a part of the `url` path, because `id` wasn't supplied the path collapsed down to that point, and any remaning query params passed that can't be found as replacements in the url, are added as additional query params on the resulting path.  Be aware of how urls are collapsed.  They can be very powerful but you must understand them.
 
-### config
-Type: `object`
-
-Your config can contain the following properties
+Your `config` object can contain the following properties
 
 #### constructor
 Type: `function`
@@ -56,12 +51,10 @@ Type: `object`
 To use the cache and configure it, please read jump down to the [documentation](#using-the-cache)
 
 ## Build Request
-
 You can configure any type of request using any valid HTTP Method for your Resourcify model.  To add a request, with the builder in hand, use the following format:
 
 `Builder.request(config)`
 
-### Options
 Your `config` object can contain the following properties for each request
 
 #### name
@@ -91,6 +84,21 @@ Type: `string` `promise`
 Default: `null`
 
 If you need a slightly different url for this request than the one you set globally on the builder, you can set a url per request.  You can either supply the url as a `string` or a `promise` that resolves with the correct url.
+
+## Build Instance Method
+With an instance of your model, you may need to do some manipulation at times, or you may just want to extrapolate some code away into your models.  You can build a custom `method` to do that:
+
+`Builder.method(name, action)`
+
+#### name
+Type: `string`
+
+The name of the method that will appear on the model's prototype.  **Required**
+
+#### action
+Type: `function`
+
+The function to call when your action is triggered.  This function will be bound the the model's `this` property to access any values or other methods you expect to be there.
 
 
 ## Using the Cache
