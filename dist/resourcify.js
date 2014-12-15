@@ -8,7 +8,11 @@ function ResourcifyCache() {
 
   function Cache (options) {
     this.$cache = {};
-    this.$options = options;
+    this.$options = angular.extend({
+      id: 'id',
+      saveMethod: 'POST',
+      key: ['id']
+    }, options);
     this.$lists = {};
   }
 
@@ -26,7 +30,7 @@ function ResourcifyCache() {
     if (!cache[key[key.length - 1]]) {
       if (postCall) {
         angular.forEach(this.$lists, function (val) {
-          val.$$invalid = true;
+          val.$invalid = true;
         });
       }
       var that = this;
@@ -123,7 +127,7 @@ function renameFunction (name, fn) {
 }
 /* jshint evil: false */
 
-function resourcificator ($http, $q, utils, Cache, $timeout) {
+function resourcificator ($http, $q, utils, Cache) {
 
   function Resourcify (name, url, config) {
 
@@ -138,13 +142,14 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
 
     // Make constructor
     this.$$ResourceConstructor = renameFunction(this.name, function (data) {
-      angular.extend(this, data);
+      angular.extend(this, data || {});
       (that.config.constructor || angular.noop).bind(this)(data);
     });
+
     this.$$ResourceConstructor.$$builder = this;
 
     if (this.config.cache) {
-      this.cache = Cache.createCache(this.config.cache);
+      this.cache = Cache.createCache(angular.isObject(this.config.cache) ? this.config.cache : {});
       this.$$ResourceConstructor.$clearCache = this.cache.clear;
     }
   }
@@ -168,6 +173,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       throw new Error('Request config must contain a HTTP method and a name');
     }
 
+    config.url = config.url ? $q.when(config.url) : null;
     config.$Const = Constructor;
 
     if (config.isInstance) {
@@ -184,10 +190,41 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
   }
 
   function doRequest (url, value, config, success, error) {
+
+    function resolve() {
+      value.$resolved = true;
+      value.$url = url;
+      success(value);
+      config.$defer.resolve(value);
+    }
+
     var httpConfig = {
       url: url,
       method: config.method
     };
+
+    // Check if what we are requesting is already in the cache
+    // If so, make sure initial 'value' is from the cache, and get out of here
+    var cache = config.$Const.$$builder.cache;
+    if (cache && !config.noCache && !config.$force) {
+      if (!angular.isArray(value)) {
+        var cValue = cache.get(cache.getKey(angular.extend(config.params, value)));
+        if (cValue && !cValue.$invalid) {
+          cValue.$promise = value.$promise;
+          value = cValue;
+          resolve();
+          return;
+        }
+      } else {
+        var lValue = cache.getList(url);
+        if (lValue && !lValue.$invalid) {
+          lValue.$promise = value.$promise;
+          value = lValue;
+          resolve();
+          return;
+        }
+      }
+    }
 
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
     $http(httpConfig).then(function ok(response) {
@@ -197,18 +234,19 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       }
 
       // Build item and handle cache
-      var cache = config.$Const.$$builder.cache;
       if (config.isArray) {
         angular.forEach(response.data, function (item) {
-          value.push(typeof item === 'object' ? new config.$Const(item) : item);
+          var model = typeof item === 'object' ? new config.$Const(item) : {data: item};
+          model.$invalid = (config.invalidateListModels && cache);
+          value.push(model);
         });
-        if (cache) {
+        if (cache && !config.noCache) {
           value = cache.addList(url, value);
         }
       } else {
-        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
-        if (cache) {
-          value = cache.add(value, (config.method === 'POST' ? true : false));
+        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : angular.extend(value, {data: response.data});
+        if (cache && !config.noCache) {
+          value = cache.add(value, (config.method === cache.$options.saveMethod));
         }
       }
 
@@ -217,10 +255,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
         value.$invalid = false;
       }
 
-      value.$resolved = true;
-      value.$url = url;
-      success(value);
-      config.$defer.resolve(value);
+      resolve();
 
     }, function rejection(err) {
       error(err);
@@ -232,7 +267,6 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
     return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
       var cache = config.$Const.$$builder.cache;
-
       if (angular.isFunction(params)) {
         err = success || angular.noop;
         success = params;
@@ -244,58 +278,25 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       }
 
       config.$defer = $q.defer();
+      config.params = params;
       value.$promise = config.$defer.promise;
       value.$resolved = false;
 
-      // Check if what we are requesting is already in the cache
-      // If so, make sure initial 'value' is from the cache
-      var firstTime = false;
-      if (cache) {
-        if (!angular.isArray(value)) {
-          var cValue = $q.when(cache.get(cache.getKey(angular.extend({}, params, value))));
-          if (cValue) {
-            cValue.$promise = value.$promise;
-            value = cValue;
-          } else {
-            firstTime = true;
-          }
-        } else if (config.$Const.$$builder.$path) {
-          var lValue = $q.when(cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value)));
-          if (lValue) {
-            lValue.$promise = value.$promise;
-            value = lValue;
-          }
-        } else {
-          firstTime = true;
-        }
-      }
-
       // Resolve path
-      // TODO Could be a concurrency issue here when 2 calls happen at same time before one completes
-      // There will be 2 'value' values and only one can be used in the end
-      if ((cache && (value.$$invalid || firstTime)) || !cache || config.$force) {
-        config.$Const.$$builder.url.then(function resolved(path) {
-          config.$Const.$$builder.$path = config.$Const.$$builder.$path || path;
-          doRequest(utils.replaceParams(params, path, value), value, config, success, err);
-        }, function rejected() {
-          throw new Error('Could not resolve URL for ' + config);
-        });
-      } else {
-        $timeout(function () {
-          value.$resolved = true;
-          success(value);
-          config.$defer.resolve(value);
-        });
-      }
+      (config.url || config.$Const.$$builder.url).then(function resolved(path) {
+        doRequest(utils.replaceParams(params, path, value), value, config, success, err);
+      }, function rejected() {
+        throw new Error('Could not resolve URL for ' + config.toString());
+      });
 
-      return cache ? value.$promise : value;
+      return (cache || config.$Const.$$builder.config.usePromise) ? value.$promise : value;
     };
   }
 
   return Resourcify;
 }
 
-resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache', '$timeout'];
+resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache'];
 
 angular.module('resourcify').service('Resourcify', resourcificator);
 
@@ -315,7 +316,8 @@ function resourcifyUtils () {
 
   // Finds and replaces query params and path params
   function replaceParams (params, url, object) {
-    var findParam = /[\/=](:\w*[a-zA-Z]\w*)/, copiedPath = angular.copy(url), match, cut = '__|cut|__';
+    var findParam = /[\/=.](:\w*[a-zA-Z]\w*)/, copiedPath = angular.copy(url),
+    match, cut = '__|cut|__', copiedParams = angular.copy(params);
     object = object || {};
 
     // Pull off query
@@ -327,9 +329,9 @@ function resourcifyUtils () {
     // Fill in missing values in query params
     angular.forEach(qParams, function (value, key) {
       var pseudoKey = value.substring(1);
-      if (value.charAt(0) === ':' && (params[pseudoKey] || object[pseudoKey])) {
-        finalParams[key] = params[pseudoKey] || object[pseudoKey];
-        delete params[pseudoKey]; // Don't re-use param as query param if it filled one
+      if (value.charAt(0) === ':' && (copiedParams[pseudoKey] || object[pseudoKey])) {
+        finalParams[key] = copiedParams[pseudoKey] || object[pseudoKey];
+        delete copiedParams[pseudoKey]; // Don't re-use param as query param if it filled one
       } else if (value.charAt(0) !== ':') {
         finalParams[key] = value;
       }
@@ -338,9 +340,9 @@ function resourcifyUtils () {
     // Replace pieces in path
     while ((match = findParam.exec(copiedPath))) {
       var regexVal = match[1], key = match[1].substring(1);
-      copiedPath = copiedPath.replace(regexVal, params[key] || object[key] || cut);
-      if (params[key]) {
-        delete params[key];
+      copiedPath = copiedPath.replace(regexVal, copiedParams[key] || object[key] || cut);
+      if (copiedParams[key]) {
+        delete copiedParams[key];
       } else if (copiedPath.indexOf('/' + cut) !== -1) {
         copiedPath = copiedPath.substring(0, copiedPath.indexOf('/' + cut));
         break;
@@ -348,9 +350,9 @@ function resourcifyUtils () {
     }
 
     // Add on remaining query params
-    params = angular.extend({}, finalParams, params);
+    copiedParams = angular.extend({}, finalParams, copiedParams);
     var stringParams = [];
-    angular.forEach(params, function (value, key) {
+    angular.forEach(copiedParams, function (value, key) {
       stringParams.push(key + '=' + value);
     });
     copiedPath += ((stringParams.length) ? '?' : '') + stringParams.join('&');
