@@ -53,7 +53,7 @@ When a new instance of your model is created (either from a `new` call or intern
 #### cache
 Type: `object`
 
-To use the cache and configure it, please read jump down to the [documentation]()
+To use the cache and configure it, please read jump down to the [documentation](#using-the-cache)
 
 ## Build Request
 
@@ -91,3 +91,6 @@ Type: `string` `promise`
 Default: `null`
 
 If you need a slightly different url for this request than the one you set globally on the builder, you can set a url per request.  You can either supply the url as a `string` or a `promise` that resolves with the correct url.
+
+
+## Using the Cache
