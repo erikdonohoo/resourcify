@@ -17,7 +17,7 @@ The name of the model you are making.  So for our example, lets say `User`.  **R
 ### url
 Type: `string` `promise`
 
-The formatted string that will be used for any requests you add to the builder.  If you need to some async process to occur before you can determine what your `url` needs to be, you can pass a promise that will resolved with the `url`.
+The formatted string that will be used for any requests you add to the builder.  If you need some async process to occur before you can determine what your `url` needs to be, you can pass a promise that will resolved with the `url`.
 
 The `url` should look like the string that angular's [$resource](https://docs.angularjs.org/api/ngResource/service/$resource#usage) expects for the url.
 
@@ -41,6 +41,7 @@ Query parameters that are defined with values in the url will always stay.  Any 
 
 > Even though `ext` was a part of the `url` path, because `id` wasn't supplied the path collapsed down to that point, and any remaning query params passed that can't be found as replacements in the url, are added as additional query params on the resulting path.  Be aware of how urls are collapsed.  They can be very powerful but you must understand them.
 
+### config
 Your `config` object can contain the following properties
 
 #### constructor
@@ -58,6 +59,17 @@ Type: `boolean`
 Default: `true` if using cache, `false` if not
 
 When making requests with your resource and with the cache disabled, you can elect to either have your requests return an `object` that will eventually magically fill in with the response values from the server (a la angular's $resource), or a `promise` that will resolve with the requested value.  When using the cache, promises are *ALWAYS* returned.  This cannot be changed due to the nature of caching and dealing with asynchronous code.
+
+---
+
+Now that you have your builder, you can use chaining and add on requests or methods until you have just the functionality you want for your model.
+
+```javascript
+builder
+.request(config)
+.method(name, config)
+.request(config)
+```
 
 ## 2. Build Requests
 You can configure any type of request using any valid HTTP Method for your Resourcify model.  To add a request, with the builder in hand, use the following format:
