@@ -90,7 +90,7 @@ function resourcificator ($http, $q, utils, Cache) {
     if (cache && !config.noCache && !config.$force) {
       if (!angular.isArray(value)) {
         var cValue = cache.get(cache.getKey(angular.extend(config.params, value)));
-        if (cValue) {
+        if (cValue && !cValue.$invalid) {
           cValue.$promise = value.$promise;
           value = cValue;
           resolve();
@@ -98,7 +98,7 @@ function resourcificator ($http, $q, utils, Cache) {
         }
       } else {
         var lValue = cache.getList(url);
-        if (lValue) {
+        if (lValue && !lValue.$invalid) {
           lValue.$promise = value.$promise;
           value = lValue;
           resolve();
@@ -125,7 +125,7 @@ function resourcificator ($http, $q, utils, Cache) {
       } else {
         value = (typeof response.data === 'object') ? angular.extend(value, response.data) : angular.extend(value, {data: response.data});
         if (cache && !config.noCache) {
-          value = cache.add(value, (config.method === cache.$options.saveMethod ? true : false));
+          value = cache.add(value, (config.method === cache.$options.saveMethod));
         }
       }
 

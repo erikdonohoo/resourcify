@@ -26,7 +26,7 @@ function ResourcifyCache() {
     if (!cache[key[key.length - 1]]) {
       if (postCall) {
         angular.forEach(this.$lists, function (val) {
-          val.$$invalid = true;
+          val.$invalid = true;
         });
       }
       var that = this;

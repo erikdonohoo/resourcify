@@ -202,5 +202,21 @@ describe('Service: Resourcify -', function () {
         expect(list[0]).toBe(list[1][0]);
       });
     });
+
+    it('should requery after a save', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      User.query();
+      $http.flush();
+      var user = new User({name: 'sally'});
+      $http.expectPOST('http://localhost/api/v1/users')
+      .respond({id: 125, name: 'sally'});
+      user.$save();
+      $http.flush();
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}, {id: 125, name: 'sally'}]);
+      User.query();
+      $http.flush();
+    });
   });
 });
