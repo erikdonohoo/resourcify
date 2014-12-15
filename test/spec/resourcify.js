@@ -69,9 +69,11 @@ describe('Service: Resourcify -', function () {
   describe('method', function () {
     var UserBuilder;
     beforeEach(function () {
-      UserBuilder = new Resourcify('User', 'http://localhost/api/users/:userId/boats', {constructor: function () {
-        this.num = 1;
-      }});
+      UserBuilder = new Resourcify('User', 'http://localhost/api/users/:userId/boats', {
+        constructor: function () {
+          this.num = 1;
+        }
+      });
     });
 
     it('should allow adding custom methods', function () {

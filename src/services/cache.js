@@ -4,7 +4,10 @@ function ResourcifyCache() {
 
   function Cache (options) {
     this.$cache = {};
-    this.$options = options;
+    this.$options = angular.extend({
+      id: 'id',
+      saveMethod: 'POST'
+    }, options);
     this.$lists = {};
   }
 

@@ -82,6 +82,28 @@ describe('Service: ResourceUtils', function () {
       .toEqual('http://localhost/api?query=1&friend=steve');
     });
 
+    it('should ignore ports', function () {
+      expect(replaceParams({id: 123}, 'http://localhost:8080/api/friend/:id'))
+      .toEqual('http://localhost:8080/api/friend/123');
+    });
+
+    it('should handle extensions', function () {
+      expect(replaceParams({bob: 'dude', ext: 'json'}, 'http://localhost:8080/api/friend/:bob/man.:ext'))
+      .toEqual('http://localhost:8080/api/friend/dude/man.json');
+    });
+
+    it('should handle complex urls', function () {
+      expect(replaceParams({bob: 'dude', id: 123, ext: 'pdf'},
+      'http://127.0.0.1:8085/api/v1/:bob/:id/grab.:ext?yes=no&thing=:thing'))
+      .toEqual('http://127.0.0.1:8085/api/v1/dude/123/grab.pdf?yes=no');
+    });
+
+    it('should keep query params when url collapses', function () {
+      expect(replaceParams({bob: 'dude', thing: 'thang'},
+      'http://127.0.0.1:8085/api/v1/:bob/:id/grab.:ext?yes=no&thing=:thing', {ext: 'pdf'}))
+      .toEqual('http://127.0.0.1:8085/api/v1/dude?yes=no&thing=thang');
+    });
+
     it('should handle multiple parameters', function () {
       expect(replaceParams({}, 'http://localhost/api/:version/thing/:thingId/bob', {version: 'v1', thingId: '123', action: 'post'}))
       .toEqual('http://localhost/api/v1/thing/123/bob');

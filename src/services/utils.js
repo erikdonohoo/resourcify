@@ -16,7 +16,7 @@ function resourcifyUtils () {
 
   // Finds and replaces query params and path params
   function replaceParams (params, url, object) {
-    var findParam = /[\/=](:\w*[a-zA-Z]\w*)/, copiedPath = angular.copy(url), match, cut = '__|cut|__';
+    var findParam = /[\/=.](:\w*[a-zA-Z]\w*)/, copiedPath = angular.copy(url), match, cut = '__|cut|__';
     object = object || {};
 
     // Pull off query

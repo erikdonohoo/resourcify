@@ -23,13 +23,14 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
 
     // Make constructor
     this.$$ResourceConstructor = renameFunction(this.name, function (data) {
-      angular.extend(this, data);
+      angular.extend(this, data || {});
       (that.config.constructor || angular.noop).bind(this)(data);
     });
+
     this.$$ResourceConstructor.$$builder = this;
 
     if (this.config.cache) {
-      this.cache = Cache.createCache(this.config.cache);
+      this.cache = Cache.createCache(angular.isObject(this.config.cache) ? this.config.cache : {});
       this.$$ResourceConstructor.$clearCache = this.cache.clear;
     }
   }
@@ -53,6 +54,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       throw new Error('Request config must contain a HTTP method and a name');
     }
 
+    config.url = config.url ? $q.when(config.url) : null;
     config.$Const = Constructor;
 
     if (config.isInstance) {
@@ -91,7 +93,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
           value = cache.addList(url, value);
         }
       } else {
-        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : response.data;
+        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : angular.extend(value, {data: response.data});
         if (cache) {
           value = cache.add(value, (config.method === 'POST' ? true : false));
         }
@@ -135,7 +137,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       // Check if what we are requesting is already in the cache
       // If so, make sure initial 'value' is from the cache
       var firstTime = false;
-      if (cache) {
+      if (cache && !config.noCache) {
         if (!angular.isArray(value)) {
           var cValue = $q.when(cache.get(cache.getKey(angular.extend({}, params, value))));
           if (cValue) {
@@ -159,7 +161,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       // TODO Could be a concurrency issue here when 2 calls happen at same time before one completes
       // There will be 2 'value' values and only one can be used in the end
       if ((cache && (value.$$invalid || firstTime)) || !cache || config.$force) {
-        config.$Const.$$builder.url.then(function resolved(path) {
+        (config.url || config.$Const.$$builder.url).then(function resolved(path) {
           config.$Const.$$builder.$path = config.$Const.$$builder.$path || path;
           doRequest(utils.replaceParams(params, path, value), value, config, success, err);
         }, function rejected() {
