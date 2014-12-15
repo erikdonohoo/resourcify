@@ -8,7 +8,7 @@ function renameFunction (name, fn) {
 }
 /* jshint evil: false */
 
-function resourcificator ($http, $q, utils, Cache, $timeout) {
+function resourcificator ($http, $q, utils, Cache) {
 
   function Resourcify (name, url, config) {
 
@@ -71,10 +71,41 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
   }
 
   function doRequest (url, value, config, success, error) {
+
+    function resolve() {
+      value.$resolved = true;
+      value.$url = url;
+      success(value);
+      config.$defer.resolve(value);
+    }
+
     var httpConfig = {
       url: url,
       method: config.method
     };
+
+    // Check if what we are requesting is already in the cache
+    // If so, make sure initial 'value' is from the cache, and get out of here
+    var cache = config.$Const.$$builder.cache;
+    if (cache && !config.noCache && !config.$force) {
+      if (!angular.isArray(value)) {
+        var cValue = cache.get(cache.getKey(angular.extend(config.params, value)));
+        if (cValue) {
+          cValue.$promise = value.$promise;
+          value = cValue;
+          resolve();
+          return;
+        }
+      } else {
+        var lValue = cache.getList(url);
+        if (lValue) {
+          lValue.$promise = value.$promise;
+          value = lValue;
+          resolve();
+          return;
+        }
+      }
+    }
 
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
     $http(httpConfig).then(function ok(response) {
@@ -84,18 +115,17 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       }
 
       // Build item and handle cache
-      var cache = config.$Const.$$builder.cache;
       if (config.isArray) {
         angular.forEach(response.data, function (item) {
           value.push(typeof item === 'object' ? new config.$Const(item) : item);
         });
-        if (cache) {
+        if (cache && !config.noCache) {
           value = cache.addList(url, value);
         }
       } else {
         value = (typeof response.data === 'object') ? angular.extend(value, response.data) : angular.extend(value, {data: response.data});
-        if (cache) {
-          value = cache.add(value, (config.method === 'POST' ? true : false));
+        if (cache && !config.noCache) {
+          value = cache.add(value, (config.method === cache.$options.saveMethod ? true : false));
         }
       }
 
@@ -104,10 +134,7 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
         value.$invalid = false;
       }
 
-      value.$resolved = true;
-      value.$url = url;
-      success(value);
-      config.$defer.resolve(value);
+      resolve();
 
     }, function rejection(err) {
       error(err);
@@ -119,7 +146,6 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
     return function request(params, success, err) {
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
       var cache = config.$Const.$$builder.cache;
-
       if (angular.isFunction(params)) {
         err = success || angular.noop;
         success = params;
@@ -131,49 +157,16 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
       }
 
       config.$defer = $q.defer();
+      config.params = params;
       value.$promise = config.$defer.promise;
       value.$resolved = false;
 
-      // Check if what we are requesting is already in the cache
-      // If so, make sure initial 'value' is from the cache
-      var firstTime = false;
-      if (cache && !config.noCache) {
-        if (!angular.isArray(value)) {
-          var cValue = $q.when(cache.get(cache.getKey(angular.extend({}, params, value))));
-          if (cValue) {
-            cValue.$promise = value.$promise;
-            value = cValue;
-          } else {
-            firstTime = true;
-          }
-        } else if (config.$Const.$$builder.$path) {
-          var lValue = $q.when(cache.getList(utils.replaceParams(params, config.$Const.$$builder.$path, value)));
-          if (lValue) {
-            lValue.$promise = value.$promise;
-            value = lValue;
-          }
-        } else {
-          firstTime = true;
-        }
-      }
-
       // Resolve path
-      // TODO Could be a concurrency issue here when 2 calls happen at same time before one completes
-      // There will be 2 'value' values and only one can be used in the end
-      if ((cache && (value.$$invalid || firstTime)) || !cache || config.$force) {
-        (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-          config.$Const.$$builder.$path = config.$Const.$$builder.$path || path;
-          doRequest(utils.replaceParams(params, path, value), value, config, success, err);
-        }, function rejected() {
-          throw new Error('Could not resolve URL for ' + config);
-        });
-      } else {
-        $timeout(function () {
-          value.$resolved = true;
-          success(value);
-          config.$defer.resolve(value);
-        });
-      }
+      (config.url || config.$Const.$$builder.url).then(function resolved(path) {
+        doRequest(utils.replaceParams(params, path, value), value, config, success, err);
+      }, function rejected() {
+        throw new Error('Could not resolve URL for ' + config.toString());
+      });
 
       return cache ? value.$promise : value;
     };
@@ -182,6 +175,6 @@ function resourcificator ($http, $q, utils, Cache, $timeout) {
   return Resourcify;
 }
 
-resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache', '$timeout'];
+resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache'];
 
 angular.module('resourcify').service('Resourcify', resourcificator);

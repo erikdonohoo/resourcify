@@ -102,3 +102,7 @@ The function to call when your action is triggered.  This function will be bound
 
 
 ## Using the Cache
+
+#### key
+#### id
+#### saveMethod

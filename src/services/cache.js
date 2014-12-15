@@ -6,7 +6,8 @@ function ResourcifyCache() {
     this.$cache = {};
     this.$options = angular.extend({
       id: 'id',
-      saveMethod: 'POST'
+      saveMethod: 'POST',
+      key: ['id']
     }, options);
     this.$lists = {};
   }

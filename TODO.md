@@ -28,3 +28,4 @@ The idea behind these is that you can call a function before or after a request 
 - [ ] Allow runtime configuration and patching of these resources after instantiation.
 - [x] Allow configuring of what "id" property is on a saved object
 - [ ] Be able to nest objects (object a has a list of object b as property) possibly handle this using prototype chain to fill pieces
+- [ ] Handle weird situation where you query for a list of things, but the properties in the objects in the list are minimal, and then you want to do a get on an individual item.  By default the cache will give you the item from the query call, but sometimes you know that item isn't completely retrieved and in the cache until an individual get is done on it.
