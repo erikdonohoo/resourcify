@@ -170,7 +170,7 @@ function resourcificator ($http, $q, utils, Cache) {
         throw new Error('Could not resolve URL for ' + config.toString());
       });
 
-      return cache ? value.$promise : value;
+      return (cache || config.$Const.$$builder.config.usePromise) ? value.$promise : value;
     };
   }
 

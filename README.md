@@ -50,6 +50,12 @@ Type: `object`
 
 To use the cache and configure it, please read jump down to the [documentation](#using-the-cache)
 
+#### usePromise
+Type: `boolean`  
+Default: `true` if using cache, `false` if not
+
+When making requests with your resource and with the cache disabled, you can elect to either have your requests return an `object` that will eventually magically fill in with the response values from the server (a la angular's $resource), or a `promise` that will resolve with the requested value.  When using the cache, promises are *ALWAYS* returned.  This cannot be changed due to the nature of caching and dealing with asynchronous code.
+
 ## 2. Build Requests
 You can configure any type of request using any valid HTTP Method for your Resourcify model.  To add a request, with the builder in hand, use the following format:
 
@@ -143,6 +149,7 @@ User.query().then(function putUsersOnScope(users) {
 });
 ```
 ## Using the Cache
+
 
 #### key
 #### id

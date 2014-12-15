@@ -140,6 +140,26 @@ describe('Service: Resourcify -', function () {
       expect(user.id).toBe(123);
       expect(user.name).toBe('bob');
     });
+
+    it('should return promises when set', function () {
+      User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId', {
+        usePromise: true
+      })
+      .request({method: 'GET', name: 'query', isArray: true})
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'DELETE', name: '$delete', isInstance: true})
+      .create();
+
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var prom = User.query();
+      $http.flush();
+      expect(prom.then).toBeDefined();
+      expect(typeof prom.then).toBe('function');
+      prom.then(function (users) {
+        expect(users.length).toBe(2);
+      });
+    });
   });
 
   describe('cache', function () {
