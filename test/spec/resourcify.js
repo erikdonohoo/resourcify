@@ -155,6 +155,7 @@ describe('Service: Resourcify -', function () {
       .request({method: 'POST', name: '$save', isInstance: true})
       .request({method: 'DELETE', name: '$delete', isInstance: true})
       .request({method: 'GET', name: '$get', isInstance: true})
+      .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true})
       .create();
     });
     afterEach(function () {
@@ -216,6 +217,20 @@ describe('Service: Resourcify -', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}, {id: 125, name: 'sally'}]);
       User.query();
+      $http.flush();
+    });
+
+    it('should allow a call to an invalidated model with invalidateListModels flag set', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      User.queryInvalid();
+      $http.flush();
+      $http.expectGET('http://localhost/api/v1/users/123')
+      .respond({id: 123, name: 'bob', friend: true, team: 'blue'});
+      var userPromise = User.get({id: 123});
+      userPromise.then(function (detailedUser) {
+        expect(detailedUser.friend).toBe(true);
+      });
       $http.flush();
     });
   });

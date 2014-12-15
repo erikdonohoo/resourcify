@@ -1,7 +1,7 @@
 # Resourcify
 Resourcify lets you have rich data models in your angular project that rock!  You can get rid of those long controllers with code that manipulates your models and move it where it belongs, into your models themselves!  It even includes smart caching that you can turn on to optimize your network requests.
 
-## Create a Builder
+## 1. Create a Builder
 Resourcify lets you make a `ResourcifyBuilder` that you can add all kinds of goodies onto for your backend requests and any other model manipulation you want to perform.  Creating a new builder is as simple as this:
 
 `var UserBuilder = new Resourcify(name, url, config)`
@@ -50,7 +50,7 @@ Type: `object`
 
 To use the cache and configure it, please read jump down to the [documentation](#using-the-cache)
 
-## Build Request
+## 2. Build Requests
 You can configure any type of request using any valid HTTP Method for your Resourcify model.  To add a request, with the builder in hand, use the following format:
 
 `Builder.request(config)`
@@ -85,7 +85,13 @@ Default: `null`
 
 If you need a slightly different url for this request than the one you set globally on the builder, you can set a url per request.  You can either supply the url as a `string` or a `promise` that resolves with the correct url.
 
-## Build Instance Method
+#### invalidateListModels
+Type: `boolean`  
+Default: `false`
+
+This option is to be used in conjunction with a `ResourceBuilder` that is using a cache and *ONLY* when `isArray` is `true`.  Setting this option to `true` allows GET requests to individual values that were cached from making the request being built.  Sometimes an API may return smaller optimized objects when retrieved in a list.  Normally a subsequent GET to one of those individual values would just pull it out of the cache.  This option allows any objects retrieved with this request method to be invalidated immediately, so a future GET request for the individual value will still hit the server.
+
+## 3. Add Instance Methods
 With an instance of your model, you may need to do some manipulation at times, or you may just want to extrapolate some code away into your models.  You can build a custom `method` to do that:
 
 `Builder.method(name, action)`
@@ -101,6 +107,41 @@ Type: `function`
 The function to call when your action is triggered.  This function will be bound the the model's `this` property to access any values or other methods you expect to be there.
 
 
+## 4. Create the Resource
+When you are done with the builder, you need to create the resource.
+
+`var MyModel = Builder.create()`
+
+## 5. Using Your Model
+Once you have created the resource, you can make an angular service out of it and BOOM, ready to use.
+
+```javascript
+angular.module('myModule').service('User', [
+  'Resourcify',
+function (Resourcify) {
+  var UserBuilder = new Resourcify('User', ...);
+  // Add some requests, methods, etc.
+  return UserBuilder.create();
+}]);
+```
+
+Now I can inject my `User` service anywhere I want
+
+```javascript
+// Inside some ctrl or directive...
+$scope.newUser = new User();
+
+// Put newUser in a form, and fill in some fields and then on submit...
+$scope.newUser.save();
+
+// Or get a list of users to show
+$scope.users = User.query();
+
+// Or if you are using cache
+User.query().then(function putUsersOnScope(users) {
+  $scope.users = users;
+});
+```
 ## Using the Cache
 
 #### key

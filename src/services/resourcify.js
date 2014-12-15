@@ -117,7 +117,9 @@ function resourcificator ($http, $q, utils, Cache) {
       // Build item and handle cache
       if (config.isArray) {
         angular.forEach(response.data, function (item) {
-          value.push(typeof item === 'object' ? new config.$Const(item) : item);
+          var model = typeof item === 'object' ? new config.$Const(item) : {data: item};
+          model.$invalid = (config.invalidateListModels && cache);
+          value.push(model);
         });
         if (cache && !config.noCache) {
           value = cache.addList(url, value);
