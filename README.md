@@ -1,6 +1,12 @@
 # Resourcify
 Resourcify lets you have rich data models in your angular project that rock!  You can get rid of those long controllers with code that manipulates your models and move it where it belongs, into your models themselves!  It even includes smart caching that you can turn on to optimize your network requests.
 
+* 1. [Create a Builder](#create-a-builder)
+* 2. [Build Requests](#build-requests)
+* 3. [Add Instance Methods](#add-instance-methods)
+* 4. [Create the Resource](#create-the-resource)
+* 5. [Using Your Model](#using-your-model)
+
 ## WARNING
 Resourcify is under active development.  Things are starting to stabilize, but things are still subject to change.
 
@@ -17,7 +23,13 @@ angular.module('myMod', ['resourcify']);
 ## 1. Create a Builder
 Resourcify lets you make a `ResourcifyBuilder` that you can add all kinds of goodies onto for your backend requests and any other model manipulation you want to perform.  Creating a new builder is as simple as this:
 
-`var UserBuilder = new Resourcify(name, url, config)`
+```javascript
+angular.module('myModule').service('Data', [
+  'Resourcify',
+function (Resourcify) {
+  var UserBuilder = new Resourcify(name, url, config);
+}]);
+```
 
 ### name
 Type: `string`
