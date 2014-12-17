@@ -277,7 +277,10 @@ describe('Service: Resourcify -', function () {
     it('should allow nesting resources', function () {
       var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:id')
       .request({method: 'GET', name: 'query', isArray:true})
-      .request({method: 'POST', name: '$save', isInstance: true}).create();
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .method('addBro', function () {
+        this.text += ' bro';
+      }).create();
 
       var User = UserBuilder.subResource(Comment, {userId: 'id'}).create();
 
@@ -290,6 +293,10 @@ describe('Service: Resourcify -', function () {
       .respond([{id: 1, text: 'hey'}, {id: 2, text: 'yo'}]);
       u.comments = u.Comment.query();
       $http.flush();
+      var c = u.comments[0];
+      expect(c instanceof Comment).toBe(true);
+      c.addBro();
+      expect(c.text).toBe('hey bro');
     });
   });
 });
