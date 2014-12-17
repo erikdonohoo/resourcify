@@ -254,4 +254,44 @@ describe('Service: Resourcify -', function () {
       $http.flush();
     });
   });
+
+  describe('nested resource', function () {
+    var UserBuilder, $http, $q;
+    beforeEach(inject(function (_$httpBackend_, _$q_) {
+      $http = _$httpBackend_;
+      $q = _$q_;
+    }));
+    beforeEach(function () {
+      UserBuilder = new Resourcify('User', 'http://localhost/api/v1/users/:id')
+      .request({method: 'GET', name: 'query', isArray: true})
+      .request({method: 'GET', name: 'get'})
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'DELETE', name: '$delete', isInstance: true})
+      .request({method: 'GET', name: '$get', isInstance: true})
+      .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true});
+    });
+    afterEach(function () {
+      $http.verifyNoOutstandingExpectation();
+    });
+
+    it('should allow nesting resources', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:id')
+      .request({method: 'GET', name: 'query', isArray:true})
+      .request({method: 'POST', name: '$save', isInstance: true}).create();
+
+      var User = UserBuilder.subResource(Comment, {userId: 'id'}).create();
+
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      console.log('making users');
+      var users = User.query();
+      $http.flush();
+      var u = users[0];
+      $http.expectGET('http://localhost/api/v1/users/123/comments')
+      .respond([{id: 1, text: 'hey'}, {id: 2, text: 'yo'}]);
+      console.log(u.id);
+      u.comments = u.Comment.query();
+      $http.flush();
+    });
+  });
 });

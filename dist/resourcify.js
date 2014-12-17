@@ -255,6 +255,9 @@ function resourcificator ($http, $q, utils, Cache) {
         value.$invalid = false;
       }
 
+      // Attach headers and other stuff if needed
+      value.$response = response;
+
       resolve();
 
     }, function rejection(err) {
