@@ -82,7 +82,6 @@ module.exports = function (grunt) {
         options: {
           port: 9001,
           base: [
-            '.tmp',
             'test',
             'src'
           ]
@@ -92,8 +91,12 @@ module.exports = function (grunt) {
 
     // Test settings
     karma: {
-      unit: {
+      options: {
         configFile: 'karma.conf.js'
+      },
+      test: {},
+      debug: {
+        singleRun: false
       }
     },
 
@@ -105,8 +108,9 @@ module.exports = function (grunt) {
 
   // Register tasks
   grunt.registerTask('build', ['clean', 'jshint:all', 'jscs', 'replace:strict', 'concat', 'uglify']);
-  grunt.registerTask('test', ['jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma']);
+  grunt.registerTask('test', ['jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test']);
   grunt.registerTask('default', ['test', 'build']);
+  grunt.registerTask('debug', ['connect:test', 'karma:debug']);
 
   // When version bump is occurring, test, bump version, build and update changelog
   grunt.registerTask('bump', function (version) {

@@ -278,6 +278,7 @@ describe('Service: Resourcify -', function () {
       var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:id')
       .request({method: 'GET', name: 'query', isArray:true})
       .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'PUT', name: '$update', isInstance: true})
       .method('addBro', function () {
         this.text += ' bro';
       }).create();
@@ -293,10 +294,17 @@ describe('Service: Resourcify -', function () {
       .respond([{id: 1, text: 'hey'}, {id: 2, text: 'yo'}]);
       u.comments = u.Comment.query();
       $http.flush();
+      var newU = new u.Comment({text: 'bro'});
+      $http.expectPOST('http://localhost/api/v1/users/123/comments').respond({id: 3, text: 'bro'});
+      newU.$save();
+      $http.flush();
       var c = u.comments[0];
       expect(c instanceof Comment).toBe(true);
       c.addBro();
       expect(c.text).toBe('hey bro');
+      $http.expectPUT('http://localhost/api/v1/users/123/comments/1').respond({});
+      c.$update();
+      $http.flush();
     });
   });
 });
