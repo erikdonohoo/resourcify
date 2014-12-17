@@ -127,6 +127,30 @@ function renameFunction (name, fn) {
 }
 /* jshint evil: false */
 
+function functionName (fun) {
+  var ret = fun.toString();
+  ret = ret.substr('function '.length);
+  ret = ret.substr(0, ret.indexOf('('));
+  return ret;
+}
+
+Function.prototype.clone = function () {
+  var cloneObj = this;
+  if (this.$isClone) {
+    cloneObj = this.$clonedFrom;
+  }
+
+  var temp = function () { return cloneObj.apply(this, arguments); };
+  for (var key in this) {
+    temp[key] = this[key];
+  }
+
+  temp.$isClone = true;
+  temp.$clonedFrom = cloneObj;
+
+  return temp;
+};
+
 function resourcificator ($http, $q, utils, Cache) {
 
   function Resourcify (name, url, config) {
@@ -138,11 +162,20 @@ function resourcificator ($http, $q, utils, Cache) {
     this.url = $q.when(url);
     this.name = name;
     this.config = config || {};
+    this.subs = [];
     var that = this;
 
     // Make constructor
     this.$$ResourceConstructor = renameFunction(this.name, function (data) {
       angular.extend(this, data || {});
+      angular.forEach(that.subs, function (l) {
+        var con = l[0], map = l[1];
+        var name = functionName(con);
+        var clone = con.clone();
+        clone.$paramMap = map;
+        clone.$parentItem = this;
+        this[name] = clone;
+      }, this);
       (that.config.constructor || angular.noop).bind(this)(data);
     });
 
@@ -153,6 +186,11 @@ function resourcificator ($http, $q, utils, Cache) {
       this.$$ResourceConstructor.$clearCache = this.cache.clear;
     }
   }
+
+  Resourcify.prototype.subResource = function (Resource, map) {
+    this.subs.push([Resource, map]);
+    return this;
+  };
 
   Resourcify.prototype.method = function (name, fn) {
     this.$$ResourceConstructor.prototype[name] = fn;
@@ -255,7 +293,7 @@ function resourcificator ($http, $q, utils, Cache) {
         value.$invalid = false;
       }
 
-      // Attach headers and other stuff if needed
+      // Provide access to raw response
       value.$response = response;
 
       resolve();
@@ -264,6 +302,25 @@ function resourcificator ($http, $q, utils, Cache) {
       error(err);
       config.$defer.reject(err);
     });
+  }
+
+  function buildSubResourceParams (curObj, params, map) {
+    // As long as curObj has a $parentItem property, we will recurse
+    // The lowest level object will always win
+    var lowerParams = {};
+    if (curObj.$parentItem) {
+      lowerParams = buildSubResourceParams(curObj.$parentItem, params, map);
+    }
+
+    // Set the values in the params
+    angular.forEach(map, function (value, key) {
+      if (curObj[value]) {
+        lowerParams[key] = curObj[value];
+      }
+    });
+
+    params = angular.extend(lowerParams, params);
+    return params;
   }
 
   function generateRequest (config) {
@@ -278,6 +335,12 @@ function resourcificator ($http, $q, utils, Cache) {
         params = params || {};
         success = success || angular.noop;
         err = err || angular.noop;
+      }
+
+      // Is the requester a nested sub resource?
+      // If so include parent properties
+      if (this.$parentItem) {
+        params = buildSubResourceParams(this.$parentItem, params, this.$paramMap);
       }
 
       config.$defer = $q.defer();
