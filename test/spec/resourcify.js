@@ -283,13 +283,11 @@ describe('Service: Resourcify -', function () {
 
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
-      console.log('making users');
       var users = User.query();
       $http.flush();
       var u = users[0];
       $http.expectGET('http://localhost/api/v1/users/123/comments')
       .respond([{id: 1, text: 'hey'}, {id: 2, text: 'yo'}]);
-      console.log(u.id);
       u.comments = u.Comment.query();
       $http.flush();
     });

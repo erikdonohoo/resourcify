@@ -195,14 +195,12 @@ function resourcificator ($http, $q, utils, Cache) {
 
     // Set the values in the params
     angular.forEach(map, function (value, key) {
-      console.log(value, key);
       if (curObj[value]) {
         lowerParams[key] = curObj[value];
       }
     });
 
     params = angular.extend(lowerParams, params);
-    console.log(params);
     return params;
   }
 
