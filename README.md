@@ -242,7 +242,7 @@ var User = new Resourcify('User', 'http://localhost/api/users/:userId')
   .request({method: 'GET', name: 'query', isArray: true})
   .create();
 
-var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userid/comments/:commentId')
+var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userId/comments/:commentId')
   .request({method: 'GET', name: 'query', isArray: true})
   .create();
 ```
@@ -250,12 +250,67 @@ var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userid/comm
 The URL for `Comment` is dependent on `User`.  Or in other words, Users have comments and can create/modify them using their own namespace.  Let's nest the `Comment` resource under `User` so that we can more easily create and find comments for a given user.
 
 ```javascript
-var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userid/comments/:commentId')
+var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userId/comments/:commentId')
   .request({method: 'GET', name: 'query', isArray: true})
+  .request({method: 'POST', name: '$save', isInstance: true})
   .create();
 
-  var User = new Resourcify('User', 'http://localhost/api/users/:userId')
+var User = new Resourcify('User', 'http://localhost/api/users/:userId')
   .request({method: 'GET', name: 'query', isArray: true})
   .subResource(Comment)
   .create();
 ```
+
+### Create Nested Objects
+Now when you make a new instance of `User`, it will have a unique reference to the `Comment` constructor on it.  For example.
+
+```javascript
+var user = new User({
+  userId: 123,
+  name: 'Bob'
+});
+
+// This user can now create new Comments that are tied to it
+
+var comment = new user.Comment();
+
+// You can add some properties to it...
+comment.text = 'Yo bro';
+comment.tags = ['fun', 'exciting', 'wow'];
+
+// And then when you save it, it will use the user object that
+// created it to fill in the `userId` property
+
+comment.$save(); // POST to http://localhost/api/users/123/comments
+```
+### Collisions in Property Names
+If your objects all use the property `id` as the unique identifier, you can tell Resourcify how to map the nested objects parameters
+
+```javascript
+// With url for Comment as http://localhost/api/users/:userId/comments/:id
+
+var User = new Resourcify('User', 'http://localhost/api/users/:id')
+  .subResource(Comment, {userId: 'id'})
+  .create();
+
+// Here both Comment and User refer to themselves by `id`
+// We tell the User resource that when making nested Comments
+// to fill in the `userId` property on the Comment url with the
+// `id` property on the User.
+```
+
+### Infinitely Nest
+This also works if you nest multiple objects down at multiple depths.  If you do this with 3 or more layers however, you need to let Resourcify know at which layer should it use the given property from the parent to fill the desired attribute
+
+Say we had a Tag resource on our comment
+```javascript
+var Tag = new Resourcify('Tag', 'http://localhost/api/users/:userId/comments/:commentId/tags/:id');
+
+var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userId/comments/:id')
+  .request({method: 'GET', name: 'query', isArray: true})
+  .request({method: 'POST', name: '$save', isInstance: true})
+  .subResource(Tag, {userId: 'id@2', commentId: 'id@1'})
+  .create();
+```
+
+You can use the `<propName>@<num>` syntax when you need to reference multiple properties witht he same propName.  You just need to tell Resourcify at what depth to find it.  In our case use the `id` property 2 levels in (on the User) to find the userId and use the `id` property 1 level down (on the Comment) to find the `commentId`.
