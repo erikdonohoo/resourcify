@@ -264,7 +264,7 @@ function resourcificator ($http, $q, utils, Cache) {
       // If so include parent properties
       var parentParams = {};
       if (this.$parentItem || (this.prototype && this.prototype.$parentItem)) {
-        if (!this.$paramMap && !this.prototype.$paramMap) {
+        if (!this.$paramMap && (!this.prototype || !this.prototype.$paramMap)) {
           parentParams = recurseParent(this.$parentItem || this.prototype.$parentItem, parentParams);
         } else {
           params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,

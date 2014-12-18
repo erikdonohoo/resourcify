@@ -316,6 +316,7 @@ describe('Service: Resourcify -', function () {
       t.tag += ' bro';
       t.$update();
       $http.flush();
+
       $http.verifyNoOutstandingExpectation();
     });
 
@@ -345,9 +346,17 @@ describe('Service: Resourcify -', function () {
 
       var user = users[0];
       $http.expectGET('http://localhost/api/v1/users/123/comments')
-      .respond([{id: 1, text: 'hey'}, {id: 2, text: 'yo'}]);
+      .respond([{commentId: 1, text: 'hey'}, {commentId: 2, text: 'yo'}]);
       user.comments = user.Comment.query();
       $http.flush();
+
+      var comment = user.comments[0];
+      comment.text += ' bro';
+      $http.expectPUT('http://localhost/api/v1/users/123/comments/1').respond({});
+      comment.$update();
+      $http.flush();
+
+      $http.verifyNoOutstandingExpectation();
     });
   });
 });
