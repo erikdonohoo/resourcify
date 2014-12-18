@@ -233,3 +233,29 @@ User.$clearCache();
 ```
 
 ## Nesting Resources
+If you have resources that use nested URLs, you can save time by nesting resources.
+
+Say you have these two Resourcify Objects:
+
+```javascript
+var User = new Resourcify('User', 'http://localhost/api/users/:userId')
+  .request({method: 'GET', name: 'query', isArray: true})
+  .create();
+
+var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userid/comments/:commentId')
+  .request({method: 'GET', name: 'query', isArray: true})
+  .create();
+```
+
+The URL for `Comment` is dependent on `User`.  Or in other words, Users have comments and can create/modify them using their own namespace.  Let's nest the `Comment` resource under `User` so that we can more easily create and find comments for a given user.
+
+```javascript
+var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userid/comments/:commentId')
+  .request({method: 'GET', name: 'query', isArray: true})
+  .create();
+
+  var User = new Resourcify('User', 'http://localhost/api/users/:userId')
+  .request({method: 'GET', name: 'query', isArray: true})
+  .subResource(Comment)
+  .create();
+```

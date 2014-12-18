@@ -356,6 +356,14 @@ describe('Service: Resourcify -', function () {
       comment.$update();
       $http.flush();
 
+      // Make sure reference is used rather than instantiated value when filling params
+      var u = new User();
+      var c = new u.Comment();
+      u.userId = 22;
+      c.text = 'bob';
+      $http.expectPOST('http://localhost/api/v1/users/22/comments').respond({});
+      c.$save();
+
       $http.verifyNoOutstandingExpectation();
     });
   });
