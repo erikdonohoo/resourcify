@@ -135,20 +135,21 @@ function functionName (fun) {
 }
 
 Function.prototype.clone = function () {
-  var cloneObj = this;
-  if (this.$isClone) {
-    cloneObj = this.$clonedFrom;
+
+  var that = this;
+  function Clone() {
+    that.apply(this, arguments);
   }
 
-  var temp = function () { return cloneObj.apply(this, arguments); };
+  Clone.prototype = new this();
+
   for (var key in this) {
-    temp[key] = this[key];
+    if (this.hasOwnProperty(key)) {
+      Clone[key] = angular.copy(this[key]);
+    }
   }
 
-  temp.$isClone = true;
-  temp.$clonedFrom = cloneObj;
-
-  return temp;
+  return Clone;
 };
 
 function resourcificator ($http, $q, utils, Cache) {
@@ -168,14 +169,20 @@ function resourcificator ($http, $q, utils, Cache) {
     // Make constructor
     this.$$ResourceConstructor = renameFunction(this.name, function (data) {
       angular.extend(this, data || {});
+
+      // Add parentItem to sub constructors
       angular.forEach(that.subs, function (l) {
         var con = l[0], map = l[1];
         var name = functionName(con);
         var clone = con.clone();
-        clone.$paramMap = map;
-        clone.$parentItem = this;
+        clone.prototype.$paramMap = map;
+        clone.prototype.$parentItem = this;
         this[name] = clone;
       }, this);
+
+      // Add parentItem to this child if
+      // this.$parentItem = ?;
+
       (that.config.constructor || angular.noop).bind(this)(data);
     });
 
@@ -227,7 +234,7 @@ function resourcificator ($http, $q, utils, Cache) {
     }
   }
 
-  function doRequest (url, value, config, success, error) {
+  function doRequest (url, value, config, success, error, Maybe) {
 
     function resolve() {
       value.$resolved = true;
@@ -274,7 +281,8 @@ function resourcificator ($http, $q, utils, Cache) {
       // Build item and handle cache
       if (config.isArray) {
         angular.forEach(response.data, function (item) {
-          var model = typeof item === 'object' ? new config.$Const(item) : {data: item};
+          var model = typeof item === 'object' ? (Maybe.prototype instanceof config.$Const ?
+            new Maybe(item) : new config.$Const(item)) : {data: item};
           model.$invalid = (config.invalidateListModels && cache);
           value.push(model);
         });
@@ -304,18 +312,28 @@ function resourcificator ($http, $q, utils, Cache) {
     });
   }
 
-  function buildSubResourceParams (curObj, params, map) {
+  function buildSubResourceParams (curObj, params, map, depth) {
     // As long as curObj has a $parentItem property, we will recurse
     // The lowest level object will always win
     var lowerParams = {};
     if (curObj.$parentItem) {
-      lowerParams = buildSubResourceParams(curObj.$parentItem, params, map);
+      lowerParams = buildSubResourceParams(curObj.$parentItem, params, map, depth + 1);
     }
 
     // Set the values in the params
     angular.forEach(map, function (value, key) {
-      if (curObj[value]) {
-        lowerParams[key] = curObj[value];
+      var v, d;
+      if (value.indexOf('@') !== -1) {
+        v = value.substr(0, value.indexOf('@'));
+        d = parseInt(value.substr(value.indexOf('@') + 1));
+      } else {
+        v = value;
+        d = 0;
+      }
+      if (d && d === depth && curObj[v]) {
+        lowerParams[key] = curObj[v];
+      } else if (d === 0 && curObj[v]) {
+        lowerParams[key] = curObj[v];
       }
     });
 
@@ -325,7 +343,9 @@ function resourcificator ($http, $q, utils, Cache) {
 
   function generateRequest (config) {
     return function request(params, success, err) {
-      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] : new config.$Const({}));
+      var that = this;
+      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
+        (this.prototype instanceof config.$Const) ? new this({}) : new config.$Const({}));
       var cache = config.$Const.$$builder.cache;
       if (angular.isFunction(params)) {
         err = success || angular.noop;
@@ -339,8 +359,9 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Is the requester a nested sub resource?
       // If so include parent properties
-      if (this.$parentItem) {
-        params = buildSubResourceParams(this.$parentItem, params, this.$paramMap);
+      if (this.$parentItem || (this.prototype && this.prototype.$parentItem)) {
+        params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
+          params, this.$paramMap || this.prototype.$paramMap, 1);
       }
 
       config.$defer = $q.defer();
@@ -350,7 +371,7 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Resolve path
       (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-        doRequest(utils.replaceParams(params, path, value), value, config, success, err);
+        doRequest(utils.replaceParams(params, path, value), value, config, success, err, that);
       }, function rejected() {
         throw new Error('Could not resolve URL for ' + config.toString());
       });
