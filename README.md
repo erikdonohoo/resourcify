@@ -7,6 +7,10 @@ Resourcify lets you have rich data models in your angular project that rock!  Yo
 4. [Create the Resource](#4-create-the-resource)
 5. [Using Your Model](#5-using-your-model)
 
+**Other Documentation**
+* [Using the Cache](#using-the-cache)
+* [Nesting Resources](#nesting-resources)
+
 ## WARNING
 Resourcify is under active development.  Things are starting to stabilize, but things are still subject to change.
 
@@ -224,6 +228,8 @@ user.$clearCache();
 // This request will get to the server
 user.$get();
 
-// Let's clear all users anywhere in our app so that next time we see them they are re-requested
+// Let's clear cache of all users anywhere in our app
 User.$clearCache();
 ```
+
+## Nesting Resources

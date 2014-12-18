@@ -270,9 +270,6 @@ describe('Service: Resourcify -', function () {
       .request({method: 'GET', name: '$get', isInstance: true})
       .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true});
     });
-    afterEach(function () {
-      $http.verifyNoOutstandingExpectation();
-    });
 
     it('should allow nesting resources', function () {
       var Tag = new Resourcify('Tag', 'http://localhost/api/v1/users/:userId/comments/:commentId/tags/:id')
@@ -318,6 +315,38 @@ describe('Service: Resourcify -', function () {
       var t = c.tags[0];
       t.tag += ' bro';
       t.$update();
+      $http.flush();
+      $http.verifyNoOutstandingExpectation();
+    });
+
+    it('should allow nesting without renaming params', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:commentId')
+      .request({method: 'GET', name: 'query', isArray:true})
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'PUT', name: '$update', isInstance: true})
+      .method('addBro', function () {
+        this.text += ' bro';
+      }).create();
+
+      var User = new Resourcify('User', 'http://localhost/api/v1/users/:userId')
+      .request({method: 'GET', name: 'query', isArray: true})
+      .request({method: 'GET', name: 'get'})
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'DELETE', name: '$delete', isInstance: true})
+      .request({method: 'GET', name: '$get', isInstance: true})
+      .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true})
+      .subResource(Comment)
+      .create();
+
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{userId: 123, name: 'bob'}, {userId: 124, name: 'sue'}]);
+      var users = User.query();
+      $http.flush();
+
+      var user = users[0];
+      $http.expectGET('http://localhost/api/v1/users/123/comments')
+      .respond([{id: 1, text: 'hey'}, {id: 2, text: 'yo'}]);
+      user.comments = user.Comment.query();
       $http.flush();
     });
   });

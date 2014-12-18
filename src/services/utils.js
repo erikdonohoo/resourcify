@@ -15,10 +15,11 @@ function objectifyQueryParams (url) {
 function resourcifyUtils () {
 
   // Finds and replaces query params and path params
-  function replaceParams (params, url, object) {
+  function replaceParams (params, url, object, parentParams) {
     var findParam = /[\/=.](:\w*[a-zA-Z]\w*)/, copiedPath = angular.copy(url),
     match, cut = '__|cut|__', copiedParams = angular.copy(params);
     object = object || {};
+    parentParams = parentParams || {};
 
     // Pull off query
     var qParams = objectifyQueryParams(copiedPath), finalParams = {};
@@ -29,8 +30,8 @@ function resourcifyUtils () {
     // Fill in missing values in query params
     angular.forEach(qParams, function (value, key) {
       var pseudoKey = value.substring(1);
-      if (value.charAt(0) === ':' && (copiedParams[pseudoKey] || object[pseudoKey])) {
-        finalParams[key] = copiedParams[pseudoKey] || object[pseudoKey];
+      if (value.charAt(0) === ':' && (copiedParams[pseudoKey] || object[pseudoKey] || parentParams[pseudoKey])) {
+        finalParams[key] = copiedParams[pseudoKey] || object[pseudoKey] || parentParams[pseudoKey];
         delete copiedParams[pseudoKey]; // Don't re-use param as query param if it filled one
       } else if (value.charAt(0) !== ':') {
         finalParams[key] = value;
@@ -40,7 +41,7 @@ function resourcifyUtils () {
     // Replace pieces in path
     while ((match = findParam.exec(copiedPath))) {
       var regexVal = match[1], key = match[1].substring(1);
-      copiedPath = copiedPath.replace(regexVal, copiedParams[key] || object[key] || cut);
+      copiedPath = copiedPath.replace(regexVal, copiedParams[key] || object[key] || parentParams[key] || cut);
       if (copiedParams[key]) {
         delete copiedParams[key];
       } else if (copiedPath.indexOf('/' + cut) !== -1) {
