@@ -253,6 +253,29 @@ describe('Service: Resourcify -', function () {
       });
       $http.flush();
     });
+
+    it('should change objects across references', function () {
+      $http.expectGET('http://localhost/api/v1/users/123').respond({
+        id: 123,
+        name: 'bob',
+        friend: true,
+        friends: [{
+          id: 124
+        }, {
+          id: 125
+        }]
+      });
+      var prom = User.get({id: 123});
+      $http.flush();
+      var prom2 = User.get({id: 123});
+      $q.all({
+        user1: prom,
+        user2: prom2
+      }).then(function (users) {
+        users.user2.goo = 'foo';
+        expect(users.user2.goo).toEqual(users.user1.goo);
+      });
+    });
   });
 
   describe('nested resource', function () {
