@@ -134,23 +134,22 @@ function functionName (fun) {
   return ret;
 }
 
-Function.prototype.clone = function () {
+function cloneConstructor (ToClone) {
 
-  var that = this;
   function Clone() {
-    that.apply(this, arguments);
+    ToClone.apply(this, arguments);
   }
 
-  Clone.prototype = new this();
+  Clone.prototype = new ToClone();
 
-  for (var key in this) {
-    if (this.hasOwnProperty(key)) {
-      Clone[key] = angular.copy(this[key]);
+  for (var key in ToClone) {
+    if (ToClone.hasOwnProperty(key)) {
+      Clone[key] = angular.copy(ToClone[key]);
     }
   }
 
   return Clone;
-};
+}
 
 function resourcificator ($http, $q, utils, Cache) {
 
@@ -170,11 +169,19 @@ function resourcificator ($http, $q, utils, Cache) {
     this.$$ResourceConstructor = renameFunction(this.name, function (data) {
       angular.extend(this, data || {});
 
-      // Add parentItem to sub constructors
+      /* Add parentItem to sub constructors
+
+      // Make a copy of each sub constructor with a
+      // prototype that points at the object it is attached to
+      // as well as the prototype of the original constructor
+      // so that when new is called on it, it has all the instance functions
+      // as well as it will be an instanceof the original constructor
+      */
+
       angular.forEach(that.subs, function (l) {
         var con = l[0], map = l[1];
         var name = functionName(con);
-        var clone = con.clone();
+        var clone = cloneConstructor(con);
         clone.prototype.$paramMap = map;
         clone.prototype.$parentItem = this;
         this[name] = clone;
@@ -341,6 +348,21 @@ function resourcificator ($http, $q, utils, Cache) {
     return params;
   }
 
+  function recurseParent (parent, pParams) {
+    if (parent.$parentItem) {
+      pParams = recurseParent(parent.$parentItem, pParams);
+    }
+
+    // Set the values in the params
+    angular.forEach(parent, function (value, key) {
+      if (parent.hasOwnProperty(key)) {
+        pParams[key] = value;
+      }
+    });
+
+    return pParams;
+  }
+
   function generateRequest (config) {
     return function request(params, success, err) {
       var that = this;
@@ -359,9 +381,14 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Is the requester a nested sub resource?
       // If so include parent properties
+      var parentParams = {};
       if (this.$parentItem || (this.prototype && this.prototype.$parentItem)) {
-        params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
-          params, this.$paramMap || this.prototype.$paramMap, 1);
+        if (!this.$paramMap && (!this.prototype || !this.prototype.$paramMap)) {
+          parentParams = recurseParent(this.$parentItem || this.prototype.$parentItem, parentParams);
+        } else {
+          params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
+            params, this.$paramMap || this.prototype.$paramMap, 1);
+        }
       }
 
       config.$defer = $q.defer();
@@ -371,8 +398,8 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Resolve path
       (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-        doRequest(utils.replaceParams(params, path, value), value, config, success, err, that);
-      }, function rejected() {
+        doRequest(utils.replaceParams(params, path, value, parentParams), value, config, success, err, that);
+      }.bind(this), function rejected() {
         throw new Error('Could not resolve URL for ' + config.toString());
       });
 
@@ -402,10 +429,11 @@ function objectifyQueryParams (url) {
 function resourcifyUtils () {
 
   // Finds and replaces query params and path params
-  function replaceParams (params, url, object) {
+  function replaceParams (params, url, object, parentParams) {
     var findParam = /[\/=.](:\w*[a-zA-Z]\w*)/, copiedPath = angular.copy(url),
     match, cut = '__|cut|__', copiedParams = angular.copy(params);
     object = object || {};
+    parentParams = parentParams || {};
 
     // Pull off query
     var qParams = objectifyQueryParams(copiedPath), finalParams = {};
@@ -416,8 +444,8 @@ function resourcifyUtils () {
     // Fill in missing values in query params
     angular.forEach(qParams, function (value, key) {
       var pseudoKey = value.substring(1);
-      if (value.charAt(0) === ':' && (copiedParams[pseudoKey] || object[pseudoKey])) {
-        finalParams[key] = copiedParams[pseudoKey] || object[pseudoKey];
+      if (value.charAt(0) === ':' && (copiedParams[pseudoKey] || object[pseudoKey] || parentParams[pseudoKey])) {
+        finalParams[key] = copiedParams[pseudoKey] || object[pseudoKey] || parentParams[pseudoKey];
         delete copiedParams[pseudoKey]; // Don't re-use param as query param if it filled one
       } else if (value.charAt(0) !== ':') {
         finalParams[key] = value;
@@ -427,7 +455,7 @@ function resourcifyUtils () {
     // Replace pieces in path
     while ((match = findParam.exec(copiedPath))) {
       var regexVal = match[1], key = match[1].substring(1);
-      copiedPath = copiedPath.replace(regexVal, copiedParams[key] || object[key] || cut);
+      copiedPath = copiedPath.replace(regexVal, copiedParams[key] || object[key] || parentParams[key] || cut);
       if (copiedParams[key]) {
         delete copiedParams[key];
       } else if (copiedPath.indexOf('/' + cut) !== -1) {
