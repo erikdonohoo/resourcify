@@ -193,18 +193,28 @@ function resourcificator ($http, $q, utils, Cache) {
     });
   }
 
-  function buildSubResourceParams (curObj, params, map) {
+  function buildSubResourceParams (curObj, params, map, depth) {
     // As long as curObj has a $parentItem property, we will recurse
     // The lowest level object will always win
     var lowerParams = {};
     if (curObj.$parentItem) {
-      lowerParams = buildSubResourceParams(curObj.$parentItem, params, map);
+      lowerParams = buildSubResourceParams(curObj.$parentItem, params, map, depth + 1);
     }
 
     // Set the values in the params
     angular.forEach(map, function (value, key) {
-      if (curObj[value]) {
-        lowerParams[key] = curObj[value];
+      var v, d;
+      if (value.indexOf('@') !== -1) {
+        v = value.substr(0, value.indexOf('@'));
+        d = parseInt(value.substr(value.indexOf('@') + 1));
+      } else {
+        v = value;
+        d = 0;
+      }
+      if (d && d === depth && curObj[v]) {
+        lowerParams[key] = curObj[v];
+      } else if (d === 0 && curObj[v]) {
+        lowerParams[key] = curObj[v];
       }
     });
 
@@ -231,7 +241,8 @@ function resourcificator ($http, $q, utils, Cache) {
       // Is the requester a nested sub resource?
       // If so include parent properties
       if (this.$parentItem || (this.prototype && this.prototype.$parentItem)) {
-        params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem, params, this.$paramMap || this.prototype.$paramMap);
+        params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
+          params, this.$paramMap || this.prototype.$paramMap, 1);
       }
 
       config.$defer = $q.defer();

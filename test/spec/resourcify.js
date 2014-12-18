@@ -275,13 +275,19 @@ describe('Service: Resourcify -', function () {
     });
 
     it('should allow nesting resources', function () {
+      var Tag = new Resourcify('Tag', 'http://localhost/api/v1/users/:userId/comments/:commentId/tags/:id')
+      .request({method: 'GET', name: 'query', isArray:true})
+      .request({method: 'POST', name: '$save', isInstance: true})
+      .request({method: 'PUT', name: '$update', isInstance: true})
+      .create();
+
       var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:id')
       .request({method: 'GET', name: 'query', isArray:true})
       .request({method: 'POST', name: '$save', isInstance: true})
       .request({method: 'PUT', name: '$update', isInstance: true})
       .method('addBro', function () {
         this.text += ' bro';
-      }).create();
+      }).subResource(Tag, {commentId: 'id@1', userId: 'id@2'}).create();
 
       var User = UserBuilder.subResource(Comment, {userId: 'id'}).create();
 
@@ -304,6 +310,14 @@ describe('Service: Resourcify -', function () {
       expect(c.text).toBe('hey bro');
       $http.expectPUT('http://localhost/api/v1/users/123/comments/1').respond({});
       c.$update();
+      $http.flush();
+      $http.expectGET('http://localhost/api/v1/users/123/comments/1/tags').respond([{id: 111, tag: 'yo'}]);
+      c.tags = c.Tag.query();
+      $http.flush();
+      $http.expectPUT('http://localhost/api/v1/users/123/comments/1/tags/111').respond({});
+      var t = c.tags[0];
+      t.tag += ' bro';
+      t.$update();
       $http.flush();
     });
   });
