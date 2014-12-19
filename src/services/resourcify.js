@@ -106,24 +106,35 @@ function resourcificator ($http, $q, utils, Cache) {
 
     config.url = config.url ? $q.when(config.url) : null;
     config.$Const = Constructor;
+    config.config = config.config || {};
 
     if (config.isInstance) {
       Constructor.prototype[config.name] = generateRequest(config);
-      Constructor.prototype[config.name].withConfig = function (extraConfig) {
-        return generateRequest(angular.extend(config.config || {}, extraConfig));
+      Constructor.prototype[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
       };
 
       if (config.$Const.$$builder.cache) {
         Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor.prototype[config.name].force.withConfig = function () {
+          utils.extendDeep(config.config, arguments[0]);
+          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
+        };
       }
     } else {
       Constructor[config.name] = generateRequest(config);
-      Constructor[config.name].withConfig = function (extraConfig) {
-        return generateRequest(angular.extend(config.config || {}, extraConfig));
+      Constructor[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
       };
 
       if (config.$Const.$$builder.cache) {
         Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor[config.name].force.withConfig = function () {
+          utils.extendDeep(config.config, arguments[0]);
+          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
+        };
       }
     }
   }

@@ -157,8 +157,19 @@ describe('Service: Resourcify -', function () {
       $http.flush();
     });
 
+    it('should be able to config http per request call', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
+        .request({method: 'GET', name: 'get'}).create();
+
+      $http.expectGET('http://localhost/comments/1', {
+        Accept: 'application/xml'
+      }).respond({id: 1, text: 'cool'});
+
+      Comment.get.withConfig({headers: {Accept: 'application/xml'}}, {id: 1});
+      $http.flush();
+    });
+
     it('should be able to pass config to class', function () {
-      console.log('comment');
       var Comment = new Resourcify('Comment', 'http://localhost/comments/:id', {
         httpConfig: {
           headers: {
