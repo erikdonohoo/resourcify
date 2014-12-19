@@ -164,7 +164,7 @@ describe('Service: Resourcify -', function () {
     });
 
     it('should allow constructor level requests that require a body', function () {
-      $http.expectPOST('http://localhost/api/v1/users').respond({
+      $http.expectPOST('http://localhost/api/v1/users', {name: 'bob'}).respond({
         id: 123,
         name: 'bob'
       });
