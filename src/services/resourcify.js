@@ -243,7 +243,7 @@ function resourcificator ($http, $q, utils, Cache) {
 
   function generateRequest (config) {
     return function request(p, b, s, e) {
-      var that = this, params = {}, body = {}, success, error;
+      var that = this, params = {}, body = {}, success = angular.noop, error = angular.noop;
       var cache = config.$Const.$$builder.cache;
 
       // Set params, ripped from angular's $resource
@@ -311,7 +311,7 @@ function resourcificator ($http, $q, utils, Cache) {
       // Resolve path
       (config.url || config.$Const.$$builder.url).then(function resolved(path) {
         doRequest(utils.replaceParams(params, path, value, parentParams),
-          value, config, success || angular.noop, error || angular.noop, that);
+          value, config, success, error, that);
       }.bind(this), function rejected() {
         throw new Error('Could not resolve URL for ' + config.toString());
       });
