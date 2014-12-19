@@ -158,6 +158,7 @@ describe('Service: Resourcify -', function () {
     });
 
     it('should be able to pass config to class', function () {
+      console.log('comment');
       var Comment = new Resourcify('Comment', 'http://localhost/comments/:id', {
         httpConfig: {
           headers: {
@@ -167,7 +168,7 @@ describe('Service: Resourcify -', function () {
       }).request({method: 'GET', name: 'get'})
       .request({method: 'POST', name: 'save', isInstance: true, config: {
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/xml'
         }
       }}).create();
 
@@ -183,8 +184,8 @@ describe('Service: Resourcify -', function () {
         text: 'coolio'
       }, {
         Accept: 'application/xml',
-        'Content-Type': 'application/json'
-      });
+        'Content-Type': 'application/xml'
+      }).respond({});
       c.save();
       $http.flush();
     });

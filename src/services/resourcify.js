@@ -165,8 +165,9 @@ function resourcificator ($http, $q, utils, Cache) {
       }
     }
 
+    var classConfig = config.$Const.$$builder.config.httpConfig;
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-    $http(angular.extend({}, config.$Const.$$builder.config.httpConfig, config.config || {}, httpConfig)).then(function ok(response) {
+    $http(utils.extendDeep({}, classConfig, config.config || {}, httpConfig)).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
         throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
           ' call to ' + url);

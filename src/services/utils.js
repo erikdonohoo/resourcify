@@ -12,6 +12,31 @@ function objectifyQueryParams (url) {
   return params;
 }
 
+/* Extends the destination object `dst` by copying all of the properties from the `src` object(s)
+* to `dst`. You can specify multiple `src` objects.
+* @param   {Boolean} deep If true, the merge becomes recursive (optional aka deep copy)
+* @param   {Object}  dst  Destination object.
+* @param   {Object}  src  Source object(s).
+* @returns {Object}       Reference to `dst`.
+*
+* angular.extend(object, object2) // shallow copy
+* angular.extend(true, object, object2) // deep copy
+*/
+function extendDeep(dst) {
+  angular.forEach(arguments, function (obj) {
+    if (obj !== dst) {
+      angular.forEach(obj, function (value, key) {
+        if (dst[key] && dst[key].constructor && dst[key].constructor === Object) {
+          extendDeep(dst[key], value);
+        } else {
+          dst[key] = value;
+        }
+      });
+    }
+  });
+  return dst;
+}
+
 function resourcifyUtils () {
 
   // Finds and replaces query params and path params
@@ -62,7 +87,8 @@ function resourcifyUtils () {
   }
 
   return {
-    replaceParams: replaceParams
+    replaceParams: replaceParams,
+    extendDeep: extendDeep
   };
 }
 
