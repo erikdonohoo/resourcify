@@ -68,9 +68,6 @@ function resourcificator ($http, $q, utils, Cache) {
         this[name] = clone;
       }, this);
 
-      // Add parentItem to this child if
-      // this.$parentItem = ?;
-
       (that.config.constructor || angular.noop).bind(this)(data);
     });
 
