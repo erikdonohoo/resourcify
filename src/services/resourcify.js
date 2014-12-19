@@ -43,6 +43,7 @@ function resourcificator ($http, $q, utils, Cache) {
     this.url = $q.when(url);
     this.name = name;
     this.config = config || {};
+    this.config.httpConfig = this.config.httpConfig || {};
     this.subs = [];
     var that = this;
 
@@ -108,11 +109,19 @@ function resourcificator ($http, $q, utils, Cache) {
 
     if (config.isInstance) {
       Constructor.prototype[config.name] = generateRequest(config);
+      Constructor.prototype[config.name].withConfig = function (extraConfig) {
+        return generateRequest(angular.extend(config.config || {}, extraConfig));
+      };
+
       if (config.$Const.$$builder.cache) {
         Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
       }
     } else {
       Constructor[config.name] = generateRequest(config);
+      Constructor[config.name].withConfig = function (extraConfig) {
+        return generateRequest(angular.extend(config.config || {}, extraConfig));
+      };
+
       if (config.$Const.$$builder.cache) {
         Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
       }
@@ -157,7 +166,7 @@ function resourcificator ($http, $q, utils, Cache) {
     }
 
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-    $http(angular.extend({}, config.config || {}, httpConfig)).then(function ok(response) {
+    $http(angular.extend({}, config.$Const.$$builder.config.httpConfig, config.config || {}, httpConfig)).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
         throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
           ' call to ' + url);
