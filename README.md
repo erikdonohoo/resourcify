@@ -126,6 +126,12 @@ Default: `false`
 
 If your request returns an array instead of an object, set this to `true` so Resourcify knows and can construct an array response instead.  This can be useful for requests that are run on the class level to return a list of instances.
 
+#### propName
+Type: `string`  
+Default: `undefined`
+
+If you receive metadata with each request, and the desired data is on some property of the response, you can tell the request which property to use for your data.
+
 #### url
 Type: `string` `promise`  
 Default: `null`

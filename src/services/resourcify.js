@@ -182,14 +182,15 @@ function resourcificator ($http, $q, utils, Cache) {
     var classConfig = config.$Const.$$builder.config.httpConfig;
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
     $http(utils.extendDeep({}, classConfig, config.config || {}, httpConfig)).then(function ok(response) {
-      if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
+      var dataToUse = config.propName ? response.data[config.propName] : response.data;
+      if ((config.isArray && !angular.isArray(dataToUse)) || (!config.isArray && angular.isArray(dataToUse))) {
         throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
           ' call to ' + url);
       }
 
       // Build item and handle cache
       if (config.isArray) {
-        angular.forEach(response.data, function (item) {
+        angular.forEach(dataToUse, function (item) {
           var model = typeof item === 'object' ? (Maybe.prototype instanceof config.$Const ?
             new Maybe(item) : new config.$Const(item)) : {data: item};
           model.$invalid = (config.invalidateListModels && cache);
@@ -199,7 +200,7 @@ function resourcificator ($http, $q, utils, Cache) {
           value = cache.addList(url, value);
         }
       } else {
-        value = (typeof response.data === 'object') ? angular.extend(value, response.data) : angular.extend(value, {data: response.data});
+        value = (typeof dataToUse === 'object') ? angular.extend(value, dataToUse) : angular.extend(value, {data: dataToUse});
         if (cache && !config.noCache) {
           value = cache.add(value, (config.method === cache.$options.saveMethod));
         }
