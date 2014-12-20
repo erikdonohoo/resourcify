@@ -295,6 +295,22 @@ describe('Service: Resourcify -', function () {
       $http.flush();
       expect(u instanceof User).toBe(true);
     });
+
+    it('should allow setting what property should be used as the value', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
+      .request({method: 'GET', name: 'query', isArray: true, propName: 'data'})
+      .create();
+
+      $http.expectGET('http://localhost/comments').respond({
+        metaData: 'yo',
+        data: [{id: 1, text: 'bro'}, {id: 1, text: 'yo'}]
+      });
+      var comments = Comment.query();
+      $http.flush();
+
+      expect(comments.length).toBe(2);
+      expect(comments[0].id).toBe(1);
+    });
   });
 
   describe('cache', function () {
