@@ -11,9 +11,6 @@ Resourcify lets you have rich data models in your angular project that rock!  Yo
 * [Using the Cache](#using-the-cache)
 * [Nesting Resources](#nesting-resources)
 
-## WARNING
-Resourcify is under active development.  Things are starting to stabilize, but things are still subject to change.
-
 ## Installation
 
 Use bower: `bower install --save resourcify`
