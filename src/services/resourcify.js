@@ -242,20 +242,54 @@ function resourcificator ($http, $q, utils, Cache) {
   }
 
   function generateRequest (config) {
-    return function request(params, success, err) {
-      var that = this;
-      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
-        (this.prototype instanceof config.$Const) ? new this({}) : new config.$Const({}));
+    return function request(p, b, s, e) {
+      var that = this, params = {}, body = {}, success = angular.noop, error = angular.noop;
       var cache = config.$Const.$$builder.cache;
-      if (angular.isFunction(params)) {
-        err = success || angular.noop;
-        success = params;
-        params = {};
-      } else {
-        params = params || {};
-        success = success || angular.noop;
-        err = err || angular.noop;
+
+      // Set params, ripped from angular's $resource
+      /* jshint -W086 */ /* (purposefully fall through case statements) */
+      switch (arguments.length) {
+        case 4:
+          error = e;
+          success = s;
+          // fallthrough
+        case 3:
+        case 2:
+          if (angular.isFunction(b)) {
+            if (angular.isFunction(p)) {
+              success = p;
+              error = b;
+              break;
+            }
+
+            success = b;
+            error = s;
+            // fallthrough
+          } else {
+            params = p;
+            body = b;
+            success = s;
+            break;
+          }
+        case 1:
+          if (angular.isFunction(p)) {
+            success = p;
+          } else if (/^(POST|PUT|PATCH)$/i.test(config.method)) {
+            body = p;
+          } else {
+            params = p;
+          }
+          break;
+        case 0: break;
+        default:
+          throw new Error('Expected up to 4 arguments [params, data, success, error], got' +
+          arguments.length + ' args');
       }
+      /* jshint +W086 */ /* (purposefully fall through case statements) */
+
+      // Set value
+      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
+        (this.prototype instanceof config.$Const) ? new this(body) : new config.$Const(body));
 
       // Is the requester a nested sub resource?
       // If so include parent properties
@@ -276,7 +310,8 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Resolve path
       (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-        doRequest(utils.replaceParams(params, path, value, parentParams), value, config, success, err, that);
+        doRequest(utils.replaceParams(params, path, value, parentParams),
+          value, config, success, error, that);
       }.bind(this), function rejected() {
         throw new Error('Could not resolve URL for ' + config.toString());
       });

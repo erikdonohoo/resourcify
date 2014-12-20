@@ -105,16 +105,18 @@ describe('Service: Resourcify -', function () {
   });
 
   describe('request', function () {
-    var User, $http;
+    var User, $http, $h;
 
-    beforeEach(inject(function (_$httpBackend_) {
+    beforeEach(inject(function (_$httpBackend_, _$http_) {
       $http = _$httpBackend_;
+      $h = _$http_;
     }));
     beforeEach(function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId')
             .request({method: 'GET', name: 'query', isArray: true})
             .request({method: 'POST', name: '$save', isInstance: true})
             .request({method: 'DELETE', name: '$delete', isInstance: true})
+            .request({method: 'POST', name: 'save'})
             .create();
     });
     afterEach(function () {
@@ -159,6 +161,16 @@ describe('Service: Resourcify -', function () {
       prom.then(function (users) {
         expect(users.length).toBe(2);
       });
+    });
+
+    it('should allow constructor level requests that require a body', function () {
+      $http.expectPOST('http://localhost/api/v1/users', {name: 'bob'}).respond({
+        id: 123,
+        name: 'bob'
+      });
+      var u = User.save({name: 'bob'});
+      $http.flush();
+      expect(u instanceof User).toBe(true);
     });
   });
 
