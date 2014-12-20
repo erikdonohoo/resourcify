@@ -136,6 +136,7 @@ describe('Service: Resourcify -', function () {
       user.save();
       $http.flush();
 
+      expect(user.id).toEqual(1);
       expect(user.name).toEqual('bob is cool');
     });
 
@@ -156,9 +157,11 @@ describe('Service: Resourcify -', function () {
 
       $http.expectPOST('http://localhost/users').respond({id: 1, name: 'bob'});
       var user = new User({name: 'bob'});
-      spyOn(user, 'doThing');
+      spyOn(user, 'doThing').and.callThrough();
       user.save();
+      $http.flush();
 
+      expect(user.id).toBe(1);
       expect(user.doThing).toHaveBeenCalled();
       expect(user.num).toBe(1);
     });
