@@ -156,6 +156,9 @@ function resourcificator ($http, $q, utils, Cache) {
       }
     }
 
+    // Before fn
+    (config.before || angular.noop).apply(value);
+
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
     $http(httpConfig).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
@@ -188,6 +191,9 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Provide access to raw response
       value.$response = response;
+
+      // After fun
+      (config.after || angular.noop).apply(value);
 
       resolve();
 
