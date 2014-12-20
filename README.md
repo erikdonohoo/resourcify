@@ -132,6 +132,16 @@ Default: `null`
 
 If you need a slightly different url for this request than the one you set globally on the builder, you can set a url per request.  You can either supply the url as a `string` or a `promise` that resolves with the correct url.
 
+#### before
+Type: `function`
+
+A function to run before the request is made.  The `this` context of the function will be the model you are dealing with (either the Constructed value or the array of values depending on `isArray`).  You can manipulate data before it is sent to the server or run some other logic.
+
+#### after
+Type: `function`
+
+A function to run after a request has completed successfully but before any registered callback or resolve occurs.  If you need to do any post request processing you can do so here.
+
 #### invalidateListModels
 Type: `boolean`  
 Default: `false`
