@@ -206,6 +206,66 @@ describe('Service: Resourcify -', function () {
       expect(user.name).toBe('bob');
     });
 
+    it('should allow passing http config to request construction', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
+        .request({method: 'GET', name: 'get', config: {
+          headers: {
+            Accept: 'application/xml'
+          }
+        }}).create();
+
+      $http.expectGET('http://localhost/comments/1', {
+        Accept: 'application/xml'
+      }).respond({id: 1, text: 'cool'});
+
+      Comment.get({id: 1});
+      $http.flush();
+    });
+
+    it('should be able to config http per request call', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
+        .request({method: 'GET', name: 'get'}).create();
+
+      $http.expectGET('http://localhost/comments/1', {
+        Accept: 'application/xml'
+      }).respond({id: 1, text: 'cool'});
+
+      Comment.get.withConfig({headers: {Accept: 'application/xml'}}, {id: 1});
+      $http.flush();
+    });
+
+    it('should be able to pass config to class', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/comments/:id', {
+        httpConfig: {
+          headers: {
+            Accept: 'application/xml'
+          }
+        }
+      }).request({method: 'GET', name: 'get'})
+      .request({method: 'POST', name: 'save', isInstance: true, config: {
+        headers: {
+          'Content-Type': 'application/xml'
+        }
+      }}).create();
+
+      $http.expectGET('http://localhost/comments/1', {
+        Accept: 'application/xml'
+      }).respond({id: 1, text: 'cool'});
+      var c = Comment.get({id: 1});
+      $http.flush();
+
+      c.text = 'coolio';
+      $http.expectPOST('http://localhost/comments/1', {
+        id: 1,
+        text: 'coolio'
+      }, {
+        Accept: 'application/xml',
+        'Content-Type': 'application/xml'
+      }).respond({});
+      c.save();
+      $http.flush();
+    });
+
     it('should return promises when set', function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId', {
         usePromise: true

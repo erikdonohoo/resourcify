@@ -43,6 +43,7 @@ function resourcificator ($http, $q, utils, Cache) {
     this.url = $q.when(url);
     this.name = name;
     this.config = config || {};
+    this.config.httpConfig = this.config.httpConfig || {};
     this.subs = [];
     var that = this;
 
@@ -105,16 +106,35 @@ function resourcificator ($http, $q, utils, Cache) {
 
     config.url = config.url ? $q.when(config.url) : null;
     config.$Const = Constructor;
+    config.config = config.config || {};
 
     if (config.isInstance) {
       Constructor.prototype[config.name] = generateRequest(config);
+      Constructor.prototype[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
+      };
+
       if (config.$Const.$$builder.cache) {
         Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor.prototype[config.name].force.withConfig = function () {
+          utils.extendDeep(config.config, arguments[0]);
+          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
+        };
       }
     } else {
       Constructor[config.name] = generateRequest(config);
+      Constructor[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
+      };
+
       if (config.$Const.$$builder.cache) {
         Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor[config.name].force.withConfig = function () {
+          utils.extendDeep(config.config, arguments[0]);
+          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
+        };
       }
     }
   }
@@ -159,8 +179,9 @@ function resourcificator ($http, $q, utils, Cache) {
     // Before fn
     (config.before || angular.noop).apply(value);
 
+    var classConfig = config.$Const.$$builder.config.httpConfig;
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-    $http(httpConfig).then(function ok(response) {
+    $http(utils.extendDeep({}, classConfig, config.config || {}, httpConfig)).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
         throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
           ' call to ' + url);
