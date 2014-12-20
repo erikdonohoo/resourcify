@@ -104,6 +104,46 @@ describe('Service: Resourcify -', function () {
     });
   });
 
+  describe('before and after fn', function () {
+    var UserBuilder, $http;
+    beforeEach(inject(function (_$httpBackend_) {
+      $http = _$httpBackend_;
+    }));
+    beforeEach(function () {
+      UserBuilder = new Resourcify('User', 'http://localhost/users/:id');
+    });
+    afterEach(function () {
+      $http.verifyNoOutstandingExpectation();
+    });
+
+    it('should allow configuring functions to run before data save', function () {
+      var User = UserBuilder
+      .request({method: 'POST', name: 'save', isInstance: true, before:
+        function () {
+          this.awesomeSauce = true;
+        },
+      after:
+        function () {
+          this.name += ' is cool';
+        }
+      }).create();
+
+      $http.expectPOST('http://localhost/users', {
+        name: 'bob',
+        awesomeSauce: true
+      }).respond({id: 1, name: 'bob', awesomeSauce: true});
+      var user = new User({name: 'bob'});
+      user.save();
+      $http.flush();
+
+      expect(user.name).toEqual('bob is cool');
+    });
+
+    it('should make context of before/after functions be the model', function () {
+
+    });
+  });
+
   describe('request', function () {
     var User, $http;
 
