@@ -162,6 +162,7 @@ function resourcificator ($http, $q, utils, Cache) {
     this.url = $q.when(url);
     this.name = name;
     this.config = config || {};
+    this.config.httpConfig = this.config.httpConfig || {};
     this.subs = [];
     var that = this;
 
@@ -186,9 +187,6 @@ function resourcificator ($http, $q, utils, Cache) {
         clone.prototype.$parentItem = this;
         this[name] = clone;
       }, this);
-
-      // Add parentItem to this child if
-      // this.$parentItem = ?;
 
       (that.config.constructor || angular.noop).bind(this)(data);
     });
@@ -227,16 +225,35 @@ function resourcificator ($http, $q, utils, Cache) {
 
     config.url = config.url ? $q.when(config.url) : null;
     config.$Const = Constructor;
+    config.config = config.config || {};
 
     if (config.isInstance) {
       Constructor.prototype[config.name] = generateRequest(config);
+      Constructor.prototype[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
+      };
+
       if (config.$Const.$$builder.cache) {
         Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor.prototype[config.name].force.withConfig = function () {
+          utils.extendDeep(config.config, arguments[0]);
+          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
+        };
       }
     } else {
       Constructor[config.name] = generateRequest(config);
+      Constructor[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
+      };
+
       if (config.$Const.$$builder.cache) {
         Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor[config.name].force.withConfig = function () {
+          utils.extendDeep(config.config, arguments[0]);
+          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
+        };
       }
     }
   }
@@ -278,8 +295,12 @@ function resourcificator ($http, $q, utils, Cache) {
       }
     }
 
+    // Before fn
+    (config.before || angular.noop).apply(value);
+
+    var classConfig = config.$Const.$$builder.config.httpConfig;
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
-    $http(httpConfig).then(function ok(response) {
+    $http(utils.extendDeep({}, classConfig, config.config || {}, httpConfig)).then(function ok(response) {
       if ((config.isArray && !angular.isArray(response.data)) || (!config.isArray && angular.isArray(response.data))) {
         throw new Error('Saw array or object when expecting the opposite when making ' + config.method +
           ' call to ' + url);
@@ -310,6 +331,9 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Provide access to raw response
       value.$response = response;
+
+      // After fun
+      (config.after || angular.noop).apply(value);
 
       resolve();
 
@@ -364,20 +388,54 @@ function resourcificator ($http, $q, utils, Cache) {
   }
 
   function generateRequest (config) {
-    return function request(params, success, err) {
-      var that = this;
-      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
-        (this.prototype instanceof config.$Const) ? new this({}) : new config.$Const({}));
+    return function request(p, b, s, e) {
+      var that = this, params = {}, body = {}, success = angular.noop, error = angular.noop;
       var cache = config.$Const.$$builder.cache;
-      if (angular.isFunction(params)) {
-        err = success || angular.noop;
-        success = params;
-        params = {};
-      } else {
-        params = params || {};
-        success = success || angular.noop;
-        err = err || angular.noop;
+
+      // Set params, ripped from angular's $resource
+      /* jshint -W086 */ /* (purposefully fall through case statements) */
+      switch (arguments.length) {
+        case 4:
+          error = e;
+          success = s;
+          // fallthrough
+        case 3:
+        case 2:
+          if (angular.isFunction(b)) {
+            if (angular.isFunction(p)) {
+              success = p;
+              error = b;
+              break;
+            }
+
+            success = b;
+            error = s;
+            // fallthrough
+          } else {
+            params = p;
+            body = b;
+            success = s;
+            break;
+          }
+        case 1:
+          if (angular.isFunction(p)) {
+            success = p;
+          } else if (/^(POST|PUT|PATCH)$/i.test(config.method)) {
+            body = p;
+          } else {
+            params = p;
+          }
+          break;
+        case 0: break;
+        default:
+          throw new Error('Expected up to 4 arguments [params, data, success, error], got' +
+          arguments.length + ' args');
       }
+      /* jshint +W086 */ /* (purposefully fall through case statements) */
+
+      // Set value
+      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
+        (this.prototype instanceof config.$Const) ? new this(body) : new config.$Const(body));
 
       // Is the requester a nested sub resource?
       // If so include parent properties
@@ -398,7 +456,8 @@ function resourcificator ($http, $q, utils, Cache) {
 
       // Resolve path
       (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-        doRequest(utils.replaceParams(params, path, value, parentParams), value, config, success, err, that);
+        doRequest(utils.replaceParams(params, path, value, parentParams),
+          value, config, success, error, that);
       }.bind(this), function rejected() {
         throw new Error('Could not resolve URL for ' + config.toString());
       });
@@ -424,6 +483,31 @@ function objectifyQueryParams (url) {
     );
   }
   return params;
+}
+
+/* Extends the destination object `dst` by copying all of the properties from the `src` object(s)
+* to `dst`. You can specify multiple `src` objects.
+* @param   {Boolean} deep If true, the merge becomes recursive (optional aka deep copy)
+* @param   {Object}  dst  Destination object.
+* @param   {Object}  src  Source object(s).
+* @returns {Object}       Reference to `dst`.
+*
+* angular.extend(object, object2) // shallow copy
+* angular.extend(true, object, object2) // deep copy
+*/
+function extendDeep(dst) {
+  angular.forEach(arguments, function (obj) {
+    if (obj !== dst) {
+      angular.forEach(obj, function (value, key) {
+        if (dst[key] && dst[key].constructor && dst[key].constructor === Object) {
+          extendDeep(dst[key], value);
+        } else {
+          dst[key] = value;
+        }
+      });
+    }
+  });
+  return dst;
 }
 
 function resourcifyUtils () {
@@ -476,7 +560,8 @@ function resourcifyUtils () {
   }
 
   return {
-    replaceParams: replaceParams
+    replaceParams: replaceParams,
+    extendDeep: extendDeep
   };
 }
 
