@@ -179,8 +179,16 @@ function resourcificator ($http, $q, utils, Cache) {
     // Before fn
     (config.before || angular.noop).apply(value);
 
+    // Strip $ from value for data
+    var sendData = {};
+    angular.forEach(value, function (v, key) {
+      if (value.hasOwnProperty(key) && key.charAt(0) !== '$') {
+        sendData[key] = v;
+      }
+    });
+
     var classConfig = config.$Const.$$builder.config.httpConfig;
-    httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? value : undefined;
+    httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? sendData : undefined;
     $http(utils.extendDeep({}, classConfig, config.config || {}, httpConfig)).then(function ok(response) {
       var dataToUse = config.propName ? response.data[config.propName] : response.data;
       if ((config.isArray && !angular.isArray(dataToUse)) || (!config.isArray && angular.isArray(dataToUse))) {
