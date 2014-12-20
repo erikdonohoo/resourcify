@@ -175,10 +175,11 @@ describe('Service: Resourcify -', function () {
       $h = _$http_;
     }));
     beforeEach(function () {
-      User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId')
+      User = new Resourcify('User', 'http://localhost/api/v1/users/:userId')
             .request({method: 'GET', name: 'query', isArray: true})
             .request({method: 'POST', name: '$save', isInstance: true})
             .request({method: 'DELETE', name: '$delete', isInstance: true})
+            .request({method: 'PUT', name: '$update', isInstance: true})
             .request({method: 'POST', name: 'save'})
             .create();
     });
@@ -204,6 +205,27 @@ describe('Service: Resourcify -', function () {
       $http.flush();
       expect(user.id).toBe(123);
       expect(user.name).toBe('bob');
+    });
+
+    it('should strip properties prefixed with $ on send', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{userId: 123, name: 'bob'}, {userId: 124, name: 'sue'}]);
+      var users = User.query();
+      $http.flush();
+
+      var user = users[0];
+      user.name += ' cool';
+      $http.expectPUT('http://localhost/api/v1/users/123', function (data) {
+        var response = angular.fromJson(data);
+        for (var key in response) {
+          if (key.charAt(0) === '$') {
+            return false;
+          }
+        }
+        return true;
+      }).respond({userId: 123, name: 'bob is cool'});
+      user.$update();
+      $http.flush();
     });
 
     it('should allow passing http config to request construction', function () {
