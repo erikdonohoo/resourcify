@@ -140,7 +140,27 @@ describe('Service: Resourcify -', function () {
     });
 
     it('should make context of before/after functions be the model', function () {
+      var User = UserBuilder
+      .request({method: 'POST', name: 'save', isInstance: true, before:
+        function () {
+          this.awesomeSauce = true;
+          this.doThing(1);
+        },
+        after:
+        function () {
+          this.name += ' is cool';
+        }
+      }).method('doThing', function (num) {
+        this.num = num;
+      }).create();
 
+      $http.expectPOST('http://localhost/users').respond({id: 1, name: 'bob'});
+      var user = new User({name: 'bob'});
+      spyOn(user, 'doThing');
+      user.save();
+
+      expect(user.doThing).toHaveBeenCalled();
+      expect(user.num).toBe(1);
     });
   });
 
