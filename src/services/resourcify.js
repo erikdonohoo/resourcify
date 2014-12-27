@@ -106,7 +106,13 @@ function resourcificator ($http, $q, utils, Cache) {
 
     config.url = config.url ? $q.when(config.url) : null;
     config.$Const = Constructor;
+    config.isInstance = (config.isInstance == null) ? true : config.isInstance;
     config.config = config.config || {};
+
+    // No before/after on class level
+    if (config.isInstance === false && (config.before || config.after)) {
+      throw new Error('Before/After functions not supported on Class level requests');
+    }
 
     if (config.isInstance) {
       Constructor.prototype[config.name] = generateRequest(config);

@@ -116,9 +116,22 @@ describe('Service: Resourcify -', function () {
       $http.verifyNoOutstandingExpectation();
     });
 
+    it('should not allow before/after on classes', function () {
+
+      function shouldThrow() {
+        UserBuilder.request({method: 'GET', name: 'get', isInstance: false, before:
+          function () {
+            this.cool = 1;
+          }
+        }).create();
+      }
+
+      expect(shouldThrow).toThrow();
+    });
+
     it('should allow configuring functions to run before data save', function () {
       var User = UserBuilder
-      .request({method: 'POST', name: 'save', isInstance: true, before:
+      .request({method: 'POST', name: 'save', before:
         function () {
           this.awesomeSauce = true;
         },
@@ -142,7 +155,7 @@ describe('Service: Resourcify -', function () {
 
     it('should make context of before/after functions be the model', function () {
       var User = UserBuilder
-      .request({method: 'POST', name: 'save', isInstance: true, before:
+      .request({method: 'POST', name: 'save', before:
         function () {
           this.awesomeSauce = true;
           this.doThing(1);
@@ -176,11 +189,11 @@ describe('Service: Resourcify -', function () {
     }));
     beforeEach(function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:userId')
-            .request({method: 'GET', name: 'query', isArray: true})
-            .request({method: 'POST', name: '$save', isInstance: true})
-            .request({method: 'DELETE', name: '$delete', isInstance: true})
-            .request({method: 'PUT', name: '$update', isInstance: true})
-            .request({method: 'POST', name: 'save'})
+            .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+            .request({method: 'POST', name: '$save'})
+            .request({method: 'DELETE', name: '$delete'})
+            .request({method: 'PUT', name: '$update'})
+            .request({method: 'POST', name: 'save', isInstance: false})
             .create();
     });
     afterEach(function () {
@@ -230,7 +243,7 @@ describe('Service: Resourcify -', function () {
 
     it('should allow passing http config to request construction', function () {
       var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
-        .request({method: 'GET', name: 'get', config: {
+        .request({method: 'GET', name: 'get', isInstance: false, config: {
           headers: {
             Accept: 'application/xml'
           }
@@ -246,7 +259,7 @@ describe('Service: Resourcify -', function () {
 
     it('should be able to config http per request call', function () {
       var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
-        .request({method: 'GET', name: 'get'}).create();
+        .request({method: 'GET', name: 'get', isInstance: false}).create();
 
       $http.expectGET('http://localhost/comments/1', {
         Accept: 'application/xml'
@@ -263,8 +276,9 @@ describe('Service: Resourcify -', function () {
             Accept: 'application/xml'
           }
         }
-      }).request({method: 'GET', name: 'get'})
-      .request({method: 'POST', name: 'save', isInstance: true, config: {
+      })
+      .request({method: 'GET', name: 'get', isInstance: false})
+      .request({method: 'POST', name: 'save', config: {
         headers: {
           'Content-Type': 'application/xml'
         }
@@ -292,9 +306,9 @@ describe('Service: Resourcify -', function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:userId/things/:thingId', {
         usePromise: true
       })
-      .request({method: 'GET', name: 'query', isArray: true})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'DELETE', name: '$delete', isInstance: true})
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'DELETE', name: '$delete'})
       .create();
 
       $http.expectGET('http://localhost/api/v1/users')
@@ -320,7 +334,7 @@ describe('Service: Resourcify -', function () {
 
     it('should allow setting what property should be used as the value', function () {
       var Comment = new Resourcify('Comment', 'http://localhost/comments/:id')
-      .request({method: 'GET', name: 'query', isArray: true, propName: 'data'})
+      .request({method: 'GET', name: 'query', isArray: true, propName: 'data', isInstance: false})
       .create();
 
       $http.expectGET('http://localhost/comments').respond({
@@ -343,12 +357,12 @@ describe('Service: Resourcify -', function () {
     }));
     beforeEach(function () {
       User = new Resourcify('User', 'http://localhost/api/v1/users/:id', {cache: {key: 'id'}})
-      .request({method: 'GET', name: 'query', isArray: true})
-      .request({method: 'GET', name: 'get'})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'DELETE', name: '$delete', isInstance: true})
-      .request({method: 'GET', name: '$get', isInstance: true})
-      .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true})
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'GET', name: 'get', isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'DELETE', name: '$delete'})
+      .request({method: 'GET', name: '$get'})
+      .request({method: 'GET', name: 'queryInvalid', isInstance: false, isArray: true, invalidateListModels: true})
       .create();
     });
     afterEach(function () {
@@ -459,25 +473,25 @@ describe('Service: Resourcify -', function () {
     }));
     beforeEach(function () {
       UserBuilder = new Resourcify('User', 'http://localhost/api/v1/users/:id')
-      .request({method: 'GET', name: 'query', isArray: true})
-      .request({method: 'GET', name: 'get'})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'DELETE', name: '$delete', isInstance: true})
-      .request({method: 'GET', name: '$get', isInstance: true})
-      .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true});
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'GET', name: 'get', isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'DELETE', name: '$delete'})
+      .request({method: 'GET', name: '$get'})
+      .request({method: 'GET', name: 'queryInvalid', isInstance: false, isArray: true, invalidateListModels: true});
     });
 
     it('should allow nesting resources', function () {
       var Tag = new Resourcify('Tag', 'http://localhost/api/v1/users/:userId/comments/:commentId/tags/:id')
-      .request({method: 'GET', name: 'query', isArray:true})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'PUT', name: '$update', isInstance: true})
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'PUT', name: '$update'})
       .create();
 
       var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:id')
-      .request({method: 'GET', name: 'query', isArray:true})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'PUT', name: '$update', isInstance: true})
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'PUT', name: '$update'})
       .method('addBro', function () {
         this.text += ' bro';
       }).subResource(Tag, {commentId: 'id@1', userId: 'id@2'}).create();
@@ -518,20 +532,20 @@ describe('Service: Resourcify -', function () {
 
     it('should allow nesting without renaming params', function () {
       var Comment = new Resourcify('Comment', 'http://localhost/api/v1/users/:userId/comments/:commentId')
-      .request({method: 'GET', name: 'query', isArray:true})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'PUT', name: '$update', isInstance: true})
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'PUT', name: '$update'})
       .method('addBro', function () {
         this.text += ' bro';
       }).create();
 
       var User = new Resourcify('User', 'http://localhost/api/v1/users/:userId')
-      .request({method: 'GET', name: 'query', isArray: true})
-      .request({method: 'GET', name: 'get'})
-      .request({method: 'POST', name: '$save', isInstance: true})
-      .request({method: 'DELETE', name: '$delete', isInstance: true})
-      .request({method: 'GET', name: '$get', isInstance: true})
-      .request({method: 'GET', name: 'queryInvalid', isArray: true, invalidateListModels: true})
+      .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
+      .request({method: 'GET', name: 'get', isInstance: false})
+      .request({method: 'POST', name: '$save'})
+      .request({method: 'DELETE', name: '$delete'})
+      .request({method: 'GET', name: '$get'})
+      .request({method: 'GET', name: 'queryInvalid', isInstance: false, isArray: true, invalidateListModels: true})
       .subResource(Comment)
       .create();
 

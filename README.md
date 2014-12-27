@@ -81,17 +81,17 @@ To use the cache and configure it, please read jump down to the [documentation](
 Type: `boolean`  
 Default: `true` if using cache, `false` if not
 
-When making requests with your resource and with the cache disabled, you can elect to either have your requests return an `object` that will eventually magically fill in with the response values from the server (a la angular's $resource), or a `promise` that will resolve with the requested value.  When using the cache, promises are *ALWAYS* returned.  This cannot be changed due to the nature of caching and dealing with asynchronous code.
+When making requests with your resource and with the cache disabled, you can elect to either have your requests return an `object` that will eventually magically fill in with the response values from the server (a la angular's $resource), or a `promise` that will resolve with the requested value.  When using the cache, promises are *ALWAYS* returned.  This cannot be changed due to the nature of caching and dealing with asynchronous requests that need to be cached.
 
 ---
 
 Now that you have your builder, you can use chaining and add on requests or methods until you have just the functionality you want for your model.
 
 ```javascript
-builder
-.request(config)
-.method(name, config)
-.request(config)
+UserBuilder
+.request(/* config */)
+.method(/* name, config */)
+.request(/* config */)
 ```
 
 ## 2. Build Requests
@@ -113,21 +113,21 @@ The `http` method of the request.  For `PUT`, `POST`, and `PATCH` the value of t
 
 #### isInstance
 Type: `boolean`  
-Default: `false`
+Default: `true`
 
-If this request is meant to be called from an instance of your model rather than from the class level, you need to set this to `true`.  For example, you have built up a model and want to save it to the server with a `POST` request, you could make a `POST` type request and set `isInstance` to true.
+If this request is meant to be called from the constructor of your model rather than from the instance, you need to set this to `false`.
 
 #### isArray
 Type: `boolean`  
 Default: `false`
 
-If your request returns an array instead of an object, set this to `true` so Resourcify knows and can construct an array response instead.  This can be useful for requests that are run on the class level to return a list of instances.
+If your request returns an array instead of an object, set this to `true` so Resourcify knows and can construct an array response instead.  This can be useful for requests that are run on the class level to return a list of instances.  It is assumed the array contains objects that should be turned into models.
 
 #### propName
 Type: `string`  
 Default: `undefined`
 
-If you receive metadata with each request, and the desired data is on some property of the response, you can tell the request which property to use for your data.
+If you receive metadata with each request, and the desired data is on some property of the response, you can tell the request which property to use for your data.  If that property is an array, you will still need to set `isArray` to `true` even though the actual response contained an object.
 
 #### url
 Type: `string` `promise`  
