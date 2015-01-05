@@ -65,6 +65,8 @@ Query parameters that are defined with values in the url will always stay.  Any 
 > Even though `ext` was a part of the `url` path, because `id` wasn't supplied the path collapsed down to that point, and any remaning query params passed that can't be found as replacements in the url, are added as additional query params on the resulting path.  Be aware of how urls are collapsed.  They can be very powerful but you must understand them.
 
 ### config
+Type: `object`
+
 Your `config` object can contain the following properties
 
 #### constructor
@@ -223,7 +225,7 @@ If your server returns `null` on successful PUT or POST requests that create new
 Type: `string`  
 Default: `'POST'`
 
-If you create new resources with requests of a different method, then you can change that here.  This way the cache knows when to invalidate certain things as new thigns are added to the server.
+If you create new resources with requests of a different method, then you can change that here.  This way the cache knows when to invalidate certain things as new things are added to the server.
 
 ### Getting Around the Cache
 Sometimes you need to clear the cache.  Sometimes you want to make a request and have it go through even though you have a value cached.  There are a few ways to do this.
@@ -326,4 +328,4 @@ var Comment = new Resourcify('Comment', 'http://localhost/api/users/:userId/comm
   .create();
 ```
 
-You can use the `<propName>@<num>` syntax when you need to reference multiple properties witht he same propName.  You just need to tell Resourcify at what depth to find it.  In our case use the `id` property 2 levels in (on the User) to find the userId and use the `id` property 1 level down (on the Comment) to find the `commentId`.
+You can use the `<propName>@<num>` syntax when you need to reference multiple properties with the same propName.  You just need to tell Resourcify at what depth to find it.  In our case use the `id` property 2 levels in (on the User) to find the userId and use the `id` property 1 level down (on the Comment) to find the `commentId`.
