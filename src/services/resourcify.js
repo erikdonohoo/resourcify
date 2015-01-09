@@ -42,7 +42,9 @@ function resourcificator ($http, $q, utils, Cache) {
 
     this.url = $q.when(url);
     this.name = name;
-    this.config = config || {};
+    this.config = config || {
+      idProp: 'id'
+    };
     this.config.httpConfig = this.config.httpConfig || {};
     this.subs = [];
     var that = this;
@@ -214,7 +216,15 @@ function resourcificator ($http, $q, utils, Cache) {
           value = cache.addList(url, value);
         }
       } else {
+
         value = (typeof dataToUse === 'object') ? angular.extend(value, dataToUse) : angular.extend(value, {data: dataToUse});
+
+        // Check for Location header
+        var location;
+        if (location = response.headers('Location')) {
+          value[config.$Const.$$builder.config.idProp] = location.substring(location.lastIndexOf('/') + 1);
+        }
+
         if (cache && !config.noCache) {
           value = cache.add(value, (config.method === cache.$options.saveMethod));
         }

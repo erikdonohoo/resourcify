@@ -220,6 +220,18 @@ describe('Service: Resourcify -', function () {
       expect(user.name).toBe('bob');
     });
 
+    it('should pull id of saved items off Location header', function () {
+      $http.expectPOST('http://localhost/api/v1/users')
+      .respond(null, {
+        Location: 'http://localhost/api/v1/users/123'
+      });
+      var user = new User({name: 'bob'});
+      user.$save();
+      $http.flush();
+      expect(user.id).toEqual('123');
+      expect(user.name).toEqual('bob');
+    });
+
     it('should strip properties prefixed with $ on send', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{userId: 123, name: 'bob'}, {userId: 124, name: 'sue'}]);

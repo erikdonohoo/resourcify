@@ -69,6 +69,11 @@ Type: `object`
 
 Your `config` object can contain the following properties
 
+#### idProp
+Type: `string`  
+Default: `id`
+
+If your API responds with a Location header after a request is saved, the final piece of this url (after the last slash) is set as the `id` of your model.  You can set what property to use as your `id` with this configuration property
 #### constructor
 Type: `function`
 
