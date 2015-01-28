@@ -359,6 +359,30 @@ describe('Service: Resourcify -', function () {
       expect(comments.length).toBe(2);
       expect(comments[0].id).toBe(1);
     });
+    it('should still run .then functions on promises when multiple calls are made in succession', function () {
+      $http.expectGET('http://localhost/api/v1/users?people=true')
+      .respond([{
+        id: 1,
+        name: 'bob'
+      }]);
+      $http.expectGET('http://localhost/api/v1/users?people=false')
+      .respond([{
+        id: 2,
+        name: 'sue'
+      }]);
+
+      var spy = jasmine.createSpy('spy');
+
+      var first = User.query({people: true});
+
+      first.$promise.then(spy);
+
+      User.query({people: false});
+
+      $http.flush();
+
+      expect(spy).toHaveBeenCalled();
+    });
   });
 
   describe('cache', function () {
