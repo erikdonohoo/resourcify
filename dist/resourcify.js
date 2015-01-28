@@ -272,7 +272,7 @@ function resourcificator ($http, $q, utils, Cache) {
       value.$resolved = true;
       value.$url = url;
       success(value);
-      config.$defer.resolve(value);
+      value.$$defer.resolve(value);
     }
 
     var httpConfig = {
@@ -285,7 +285,7 @@ function resourcificator ($http, $q, utils, Cache) {
     var cache = config.$Const.$$builder.cache;
     if (cache && !config.noCache && !config.$force) {
       if (!angular.isArray(value)) {
-        var cValue = cache.get(cache.getKey(angular.extend(config.params, value)));
+        var cValue = cache.get(cache.getKey(angular.extend(value.$$params, value)));
         if (cValue && !cValue.$invalid) {
           cValue.$promise = value.$promise;
           value = cValue;
@@ -364,7 +364,7 @@ function resourcificator ($http, $q, utils, Cache) {
 
     }, function rejection(err) {
       error(err);
-      config.$defer.reject(err);
+      value.$$defer.reject(err);
     });
   }
 
@@ -474,9 +474,9 @@ function resourcificator ($http, $q, utils, Cache) {
         }
       }
 
-      config.$defer = $q.defer();
-      config.params = params;
-      value.$promise = config.$defer.promise;
+      value.$$defer = $q.defer();
+      value.$$params = params;
+      value.$promise = value.$$defer.promise;
       value.$resolved = false;
 
       // Resolve path
