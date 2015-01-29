@@ -232,6 +232,22 @@ describe('Service: Resourcify -', function () {
       expect(user.name).toEqual('bob');
     });
 
+    it('should pull id of saved items off Location header even when a manual config is passed', function () {
+      var Comment = new Resourcify('Comment', 'http://localhost/comments/:id', {
+        usePromise: false
+      })
+      .request({method: 'POST', name: '$save'}).create();
+      $http.expectPOST('http://localhost/comments')
+      .respond(null, {
+        Location: 'http://localhost/comments/123'
+      });
+      var comment = new Comment({name: 'bob'});
+      comment.$save();
+      $http.flush();
+      expect(comment.id).toEqual('123');
+      expect(comment.name).toEqual('bob');
+    });
+
     it('should strip properties prefixed with $ on send', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{userId: 123, name: 'bob'}, {userId: 124, name: 'sue'}]);
