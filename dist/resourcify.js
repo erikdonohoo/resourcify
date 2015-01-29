@@ -161,9 +161,16 @@ function resourcificator ($http, $q, utils, Cache) {
 
     this.url = $q.when(url);
     this.name = name;
-    this.config = config || {
-      idProp: 'id'
-    };
+    this.config = config || {};
+
+    // Set defaults
+    this.config.idProp = this.config.idProp || 'id';
+    this.config.usePromise = (this.config.usePromise != null) ?
+      this.config.usePromise :
+      this.config.cache ?
+        true :
+        false;
+
     this.config.httpConfig = this.config.httpConfig || {};
     this.subs = [];
     var that = this;
