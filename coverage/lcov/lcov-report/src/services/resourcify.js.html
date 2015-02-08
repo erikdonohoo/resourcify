@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Code coverage report for src/services/resourcify.js</title>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="../../prettify.css">
+
+    <style>
+        body, html {
+            margin:0; padding: 0;
+        }
+        body {
+            font-family: Helvetica Neue, Helvetica,Arial;
+            font-size: 10pt;
+        }
+        div.header, div.footer {
+            background: #eee;
+            padding: 1em;
+        }
+        div.header {
+            z-index: 100;
+            position: fixed;
+            top: 0;
+            border-bottom: 1px solid #666;
+            width: 100%;
+        }
+        div.footer {
+            border-top: 1px solid #666;
+        }
+        div.body {
+            margin-top: 10em;
+        }
+        div.meta {
+            font-size: 90%;
+            text-align: center;
+        }
+        h1, h2, h3 {
+            font-weight: normal;
+        }
+        h1 {
+            font-size: 12pt;
+        }
+        h2 {
+            font-size: 10pt;
+        }
+        pre {
+            font-family: Consolas, Menlo, Monaco, monospace;
+            margin: 0;
+            padding: 0;
+            line-height: 14px;
+            font-size: 14px;
+            -moz-tab-size: 2;
+            -o-tab-size:  2;
+            tab-size: 2;
+        }
+
+        div.path { font-size: 110%; }
+        div.path a:link, div.path a:visited { color: #000; }
+        table.coverage { border-collapse: collapse; margin:0; padding: 0 }
+
+        table.coverage td {
+            margin: 0;
+            padding: 0;
+            color: #111;
+            vertical-align: top;
+        }
+        table.coverage td.line-count {
+            width: 50px;
+            text-align: right;
+            padding-right: 5px;
+        }
+        table.coverage td.line-coverage {
+            color: #777 !important;
+            text-align: right;
+            border-left: 1px solid #666;
+            border-right: 1px solid #666;
+        }
+
+        table.coverage td.text {
+        }
+
+        table.coverage td span.cline-any {
+            display: inline-block;
+            padding: 0 5px;
+            width: 40px;
+        }
+        table.coverage td span.cline-neutral {
+            background: #eee;
+        }
+        table.coverage td span.cline-yes {
+            background: #b5d592;
+            color: #999;
+        }
+        table.coverage td span.cline-no {
+            background: #fc8c84;
+        }
+
+        .cstat-yes { color: #111; }
+        .cstat-no { background: #fc8c84; color: #111; }
+        .fstat-no { background: #ffc520; color: #111 !important; }
+        .cbranch-no { background:  yellow !important; color: #111; }
+
+        .cstat-skip { background: #ddd; color: #111; }
+        .fstat-skip { background: #ddd; color: #111 !important; }
+        .cbranch-skip { background: #ddd !important; color: #111; }
+
+        .missing-if-branch {
+            display: inline-block;
+            margin-right: 10px;
+            position: relative;
+            padding: 0 4px;
+            background: black;
+            color: yellow;
+        }
+
+        .skip-if-branch {
+            display: none;
+            margin-right: 10px;
+            position: relative;
+            padding: 0 4px;
+            background: #ccc;
+            color: white;
+        }
+
+        .missing-if-branch .typ, .skip-if-branch .typ {
+            color: inherit !important;
+        }
+
+        .entity, .metric { font-weight: bold; }
+        .metric { display: inline-block; border: 1px solid #333; padding: 0.3em; background: white; }
+        .metric small { font-size: 80%; font-weight: normal; color: #666; }
+
+        div.coverage-summary table { border-collapse: collapse; margin: 3em; font-size: 110%; }
+        div.coverage-summary td, div.coverage-summary table  th { margin: 0; padding: 0.25em 1em; border-top: 1px solid #666; border-bottom: 1px solid #666; }
+        div.coverage-summary th { text-align: left; border: 1px solid #666; background: #eee; font-weight: normal; }
+        div.coverage-summary th.file { border-right: none !important; }
+        div.coverage-summary th.pic { border-left: none !important; text-align: right; }
+        div.coverage-summary th.pct { border-right: none !important; }
+        div.coverage-summary th.abs { border-left: none !important; text-align: right; }
+        div.coverage-summary td.pct { text-align: right; border-left: 1px solid #666; }
+        div.coverage-summary td.abs { text-align: right; font-size: 90%; color: #444; border-right: 1px solid #666; }
+        div.coverage-summary td.file { text-align: right; border-left: 1px solid #666; white-space: nowrap;  }
+        div.coverage-summary td.pic { min-width: 120px !important;  }
+        div.coverage-summary a:link { text-decoration: none; color: #000; }
+        div.coverage-summary a:visited { text-decoration: none; color: #333; }
+        div.coverage-summary a:hover { text-decoration: underline; }
+        div.coverage-summary tfoot td { border-top: 1px solid #666; }
+
+        div.coverage-summary .yui3-datatable-sort-indicator, div.coverage-summary .dummy-sort-indicator {
+            height: 10px;
+            width: 7px;
+            display: inline-block;
+            margin-left: 0.5em;
+        }
+        div.coverage-summary .yui3-datatable-sort-indicator {
+            background: url("https://yui-s.yahooapis.com/3.6.0/build/datatable-sort/assets/skins/sam/sort-arrow-sprite.png") no-repeat scroll 0 0 transparent;
+        }
+        div.coverage-summary .yui3-datatable-sorted .yui3-datatable-sort-indicator {
+            background-position: 0 -20px;
+        }
+        div.coverage-summary .yui3-datatable-sorted-desc .yui3-datatable-sort-indicator {
+            background-position: 0 -10px;
+        }
+
+        .high { background: #b5d592 !important; }
+        .medium { background: #ffe87c !important; }
+        .low { background: #fc8c84 !important; }
+
+        span.cover-fill, span.cover-empty {
+            display:inline-block;
+            border:1px solid #444;
+            background: white;
+            height: 12px;
+        }
+        span.cover-fill {
+            background: #ccc;
+            border-right: 1px solid #444;
+        }
+        span.cover-empty {
+            background: white;
+            border-left: none;
+        }
+        span.cover-full {
+            border-right: none !important;
+        }
+        pre.prettyprint {
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .com { color: #999 !important; }
+        .ignore-none { color: #999; font-weight: normal; }
+
+    </style>
+</head>
+<body>
+<div class="header high">
+    <h1>Code coverage report for <span class="entity">src/services/resourcify.js</span></h1>
+    <h2>
+        
+        Statements: <span class="metric">86.5% <small>(173 / 200)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Branches: <span class="metric">87.58% <small>(141 / 161)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Functions: <span class="metric">83.87% <small>(26 / 31)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        
+        Lines: <span class="metric">86.5% <small>(173 / 200)</small></span> &nbsp;&nbsp;&nbsp;&nbsp;
+        
+        Ignored: <span class="metric"><span class="ignore-none">none</span></span> &nbsp;&nbsp;&nbsp;&nbsp;
+    </h2>
+    <div class="path"><a href="../../index.html">All files</a> &#187; <a href="index.html">src/services/</a> &#187; resourcify.js</div>
+</div>
+<div class="body">
+<pre><table class="coverage">
+<tr><td class="line-count">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+196
+197
+198
+199
+200
+201
+202
+203
+204
+205
+206
+207
+208
+209
+210
+211
+212
+213
+214
+215
+216
+217
+218
+219
+220
+221
+222
+223
+224
+225
+226
+227
+228
+229
+230
+231
+232
+233
+234
+235
+236
+237
+238
+239
+240
+241
+242
+243
+244
+245
+246
+247
+248
+249
+250
+251
+252
+253
+254
+255
+256
+257
+258
+259
+260
+261
+262
+263
+264
+265
+266
+267
+268
+269
+270
+271
+272
+273
+274
+275
+276
+277
+278
+279
+280
+281
+282
+283
+284
+285
+286
+287
+288
+289
+290
+291
+292
+293
+294
+295
+296
+297
+298
+299
+300
+301
+302
+303
+304
+305
+306
+307
+308
+309
+310
+311
+312
+313
+314
+315
+316
+317
+318
+319
+320
+321
+322
+323
+324
+325
+326
+327
+328
+329
+330
+331
+332
+333
+334
+335
+336
+337
+338
+339
+340
+341
+342
+343
+344
+345
+346
+347
+348
+349
+350
+351
+352
+353
+354
+355
+356
+357
+358
+359
+360
+361
+362
+363
+364
+365
+366
+367
+368
+369
+370
+371
+372
+373
+374
+375
+376
+377
+378
+379
+380
+381
+382
+383
+384
+385
+386
+387
+388</td><td class="line-coverage"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">30</span>
+<span class="cline-any cline-yes">20</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">2</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">64</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">64</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">64</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">39</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-yes">134</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">135</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">134</span>
+<span class="cline-any cline-yes">75</span>
+<span class="cline-any cline-yes">75</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">75</span>
+<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">59</span>
+<span class="cline-any cline-yes">59</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">59</span>
+<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-yes">18</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">40</span>
+<span class="cline-any cline-yes">40</span>
+<span class="cline-any cline-yes">40</span>
+<span class="cline-any cline-yes">40</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">13</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-yes">112</span>
+<span class="cline-any cline-yes">26</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-yes">37</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">17</span>
+<span class="cline-any cline-yes">32</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">32</span>
+<span class="cline-any cline-yes">32</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17</span>
+<span class="cline-any cline-yes">6</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19</span>
+<span class="cline-any cline-yes">19</span>
+<span class="cline-any cline-yes">2</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">19</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-yes">10</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">36</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">2</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">11</span>
+<span class="cline-any cline-yes">11</span>
+<span class="cline-any cline-yes">8</span>
+<span class="cline-any cline-yes">8</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11</span>
+<span class="cline-any cline-yes">4</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-yes">7</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-yes">11</span>
+<span class="cline-any cline-yes">11</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-yes">171</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">12</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">11</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12</span>
+<span class="cline-any cline-yes">29</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">8</span>
+<span class="cline-any cline-yes">3</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">41</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">30</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">'use strict';
+&nbsp;
+/* jshint evil: true */
+// We need this function to allow users to name the constructors we are making
+function renameFunction (name, fn) {
+  return (new Function('return function (call) { return function ' + name +
+    ' () { return call(this, arguments) }; };')())(Function.apply.bind(fn));
+}
+/* jshint evil: false */
+&nbsp;
+function functionName (fun) {
+  var ret = fun.toString();
+  ret = ret.substr('function '.length);
+  ret = ret.substr(0, ret.indexOf('('));
+  return ret;
+}
+&nbsp;
+function cloneConstructor (ToClone) {
+&nbsp;
+  function Clone() {
+    ToClone.apply(this, arguments);
+  }
+&nbsp;
+  Clone.prototype = new ToClone();
+&nbsp;
+  for (var key in ToClone) {
+    if (ToClone.hasOwnProperty(key)) {
+      Clone[key] = angular.copy(ToClone[key]);
+    }
+  }
+&nbsp;
+  return Clone;
+}
+&nbsp;
+function resourcificator ($http, $q, utils, Cache) {
+&nbsp;
+  function Resourcify (name, url, config) {
+&nbsp;
+    if (!name || !url) {
+      throw new Error('Must supply a name and a url when constructing');
+    }
+&nbsp;
+    this.url = $q.when(url);
+    this.name = name;
+    this.config = config || {};
+&nbsp;
+    // Set defaults
+    this.config.idProp = this.config.idProp || 'id';
+    this.config.usePromise = (this.config.usePromise != null) ?
+      this.config.usePromise :
+      this.config.cache ?
+        true :
+        false;
+&nbsp;
+    this.config.httpConfig = this.config.httpConfig || {};
+    this.subs = [];
+    var that = this;
+&nbsp;
+    // Make constructor
+    this.$$ResourceConstructor = renameFunction(this.name, function (data) {
+      angular.extend(this, data || {});
+&nbsp;
+      /* Add parentItem to sub constructors
+&nbsp;
+      // Make a copy of each sub constructor with a
+      // prototype that points at the object it is attached to
+      // as well as the prototype of the original constructor
+      // so that when new is called on it, it has all the instance functions
+      // as well as it will be an instanceof the original constructor
+      */
+&nbsp;
+      angular.forEach(that.subs, function (l) {
+        var con = l[0], map = l[1];
+        var name = functionName(con);
+        var clone = cloneConstructor(con);
+        clone.prototype.$paramMap = map;
+        clone.prototype.$parentItem = this;
+        this[name] = clone;
+      }, this);
+&nbsp;
+      (that.config.constructor || <span class="branch-1 cbranch-no" title="branch not covered" >angular.noop)</span>.bind(this)(data);
+    });
+&nbsp;
+    this.$$ResourceConstructor.$$builder = this;
+&nbsp;
+    if (this.config.cache) {
+      this.cache = Cache.createCache(angular.isObject(this.config.cache) ? this.config.cache : <span class="branch-1 cbranch-no" title="branch not covered" >{})</span>;
+      this.$$ResourceConstructor.$clearCache = this.cache.clear;
+    }
+  }
+&nbsp;
+  Resourcify.prototype.subResource = function (Resource, map) {
+    this.subs.push([Resource, map]);
+    return this;
+  };
+&nbsp;
+  Resourcify.prototype.method = function (name, fn) {
+    this.$$ResourceConstructor.prototype[name] = fn;
+    return this;
+  };
+&nbsp;
+  Resourcify.prototype.request = function (config) {
+    addRequest(config, this.$$ResourceConstructor);
+    return this;
+  };
+&nbsp;
+  Resourcify.prototype.create = function () {
+    return this.$$ResourceConstructor;
+  };
+&nbsp;
+  function addRequest (config, Constructor) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (!config.method || !config.name) {
+<span class="cstat-no" title="statement not covered" >      throw new Error('Request config must contain a HTTP method and a name');</span>
+    }
+&nbsp;
+    config.url = config.url ? <span class="branch-0 cbranch-no" title="branch not covered" >$q.when(config.url) </span>: null;
+    config.$Const = Constructor;
+    config.isInstance = (config.isInstance == null) ? true : config.isInstance;
+    config.config = config.config || {};
+&nbsp;
+    // No before/after on class level
+    if (config.isInstance === false &amp;&amp; (config.before || config.after)) {
+      throw new Error('Before/After functions not supported on Class level requests');
+    }
+&nbsp;
+    if (config.isInstance) {
+      Constructor.prototype[config.name] = generateRequest(config);
+      Constructor.prototype[config.name].withConfig = <span class="fstat-no" title="function not covered" >function () {</span>
+<span class="cstat-no" title="statement not covered" >        utils.extendDeep(config.config, arguments[0]);</span>
+<span class="cstat-no" title="statement not covered" >        return generateRequest(config).apply(this, [].slice.call(arguments, 1));</span>
+      };
+&nbsp;
+      if (config.$Const.$$builder.cache) {
+        Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor.prototype[config.name].force.withConfig = <span class="fstat-no" title="function not covered" >function () {</span>
+<span class="cstat-no" title="statement not covered" >          utils.extendDeep(config.config, arguments[0]);</span>
+<span class="cstat-no" title="statement not covered" >          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));</span>
+        };
+      }
+    } else {
+      Constructor[config.name] = generateRequest(config);
+      Constructor[config.name].withConfig = function () {
+        utils.extendDeep(config.config, arguments[0]);
+        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
+      };
+&nbsp;
+      if (config.$Const.$$builder.cache) {
+        Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
+        Constructor[config.name].force.withConfig = <span class="fstat-no" title="function not covered" >function () {</span>
+<span class="cstat-no" title="statement not covered" >          utils.extendDeep(config.config, arguments[0]);</span>
+<span class="cstat-no" title="statement not covered" >          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));</span>
+        };
+      }
+    }
+  }
+&nbsp;
+  function doRequest (url, value, config, success, error, Maybe) {
+&nbsp;
+    function resolve() {
+      value.$resolved = true;
+      value.$url = url;
+      success(value);
+      value.$$defer.resolve(value);
+    }
+&nbsp;
+    var httpConfig = {
+      url: url,
+      method: config.method
+    };
+&nbsp;
+    // Check if what we are requesting is already in the cache
+    // If so, make sure initial 'value' is from the cache, and get out of here
+    var cache = config.$Const.$$builder.cache;
+    if (cache &amp;&amp; !config.noCache &amp;&amp; !config.$force) {
+      if (!angular.isArray(value)) {
+        var cValue = cache.get(cache.getKey(angular.extend(value.$$params, value)));
+        if (cValue &amp;&amp; !cValue.$invalid) {
+          cValue.$promise = value.$promise;
+          value = cValue;
+          resolve();
+          return;
+        }
+      } else {
+        var lValue = cache.getList(url);
+        if (lValue &amp;&amp; !lValue.$invalid) {
+          lValue.$promise = value.$promise;
+          value = lValue;
+          resolve();
+          return;
+        }
+      }
+    }
+&nbsp;
+    // Before fn
+    (config.before || angular.noop).apply(value);
+&nbsp;
+    // Strip $ from value for data
+    var sendData = {};
+    angular.forEach(value, function (v, key) {
+      if (value.hasOwnProperty(key) &amp;&amp; key.charAt(0) !== '$') {
+        sendData[key] = v;
+      }
+    });
+&nbsp;
+    var classConfig = config.$Const.$$builder.config.httpConfig;
+    httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? sendData : undefined;
+    $http(utils.extendDeep({}, classConfig, config.config || <span class="branch-1 cbranch-no" title="branch not covered" >{},</span> httpConfig)).then(function ok(response) {
+      var dataToUse = config.propName ? response.data[config.propName] : response.data;
+      <span class="missing-if-branch" title="if path not taken" >I</span>if ((config.isArray &amp;&amp; !angular.isArray(dataToUse)) || (!config.isArray &amp;&amp; angular.isArray(dataToUse))) {
+<span class="cstat-no" title="statement not covered" >        throw new Error('Saw array or object when expecting the opposite when making ' + config.method +</span>
+          ' call to ' + url);
+      }
+&nbsp;
+      // Build item and handle cache
+      if (config.isArray) {
+        angular.forEach(dataToUse, function (item) {
+          var model = typeof item === 'object' ? (Maybe.prototype instanceof config.$Const ?
+            new Maybe(item) : new config.$Const(item)) : <span class="branch-1 cbranch-no" title="branch not covered" >{data: item};</span>
+          model.$invalid = (config.invalidateListModels &amp;&amp; cache);
+          value.push(model);
+        });
+        if (cache &amp;&amp; !config.noCache) {
+          value = cache.addList(url, value);
+        }
+      } else {
+&nbsp;
+        value = (typeof dataToUse === 'object') ? angular.extend(value, dataToUse) : <span class="branch-1 cbranch-no" title="branch not covered" >angular.extend(value, {data: dataToUse});</span>
+&nbsp;
+        // Check for Location header
+        var location;
+        if (location = response.headers('Location')) {
+          value[config.$Const.$$builder.config.idProp] = location.substring(location.lastIndexOf('/') + 1);
+        }
+&nbsp;
+        if (cache &amp;&amp; !config.noCache) {
+          value = cache.add(value, (config.method === cache.$options.saveMethod));
+        }
+      }
+&nbsp;
+      // We just updated the value, so cache is good now
+      if (cache) {
+        value.$invalid = false;
+      }
+&nbsp;
+      // Provide access to raw response
+      value.$response = response;
+&nbsp;
+      // After fun
+      (config.after || angular.noop).apply(value);
+&nbsp;
+      resolve();
+&nbsp;
+    }, <span class="fstat-no" title="function not covered" >function rejection(err) {</span>
+<span class="cstat-no" title="statement not covered" >      error(err);</span>
+<span class="cstat-no" title="statement not covered" >      value.$$defer.reject(err);</span>
+    });
+  }
+&nbsp;
+  function buildSubResourceParams (curObj, params, map, depth) {
+    // As long as curObj has a $parentItem property, we will recurse
+    // The lowest level object will always win
+    var lowerParams = {};
+    if (curObj.$parentItem) {
+      lowerParams = buildSubResourceParams(curObj.$parentItem, params, map, depth + 1);
+    }
+&nbsp;
+    // Set the values in the params
+    angular.forEach(map, function (value, key) {
+      var v, d;
+      if (value.indexOf('@') !== -1) {
+        v = value.substr(0, value.indexOf('@'));
+        d = parseInt(value.substr(value.indexOf('@') + 1));
+      } else {
+        v = value;
+        d = 0;
+      }
+      if (d &amp;&amp; d === depth &amp;&amp; curObj[v]) {
+        lowerParams[key] = curObj[v];
+      } else if (d === 0 &amp;&amp; curObj[v]) {
+        lowerParams[key] = curObj[v];
+      }
+    });
+&nbsp;
+    params = angular.extend(lowerParams, params);
+    return params;
+  }
+&nbsp;
+  function recurseParent (parent, pParams) {
+    <span class="missing-if-branch" title="if path not taken" >I</span>if (parent.$parentItem) {
+<span class="cstat-no" title="statement not covered" >      pParams = recurseParent(parent.$parentItem, pParams);</span>
+    }
+&nbsp;
+    // Set the values in the params
+    angular.forEach(parent, function (value, key) {
+      <span class="missing-if-branch" title="else path not taken" >E</span>if (parent.hasOwnProperty(key)) {
+        pParams[key] = value;
+      }
+    });
+&nbsp;
+    return pParams;
+  }
+&nbsp;
+  function generateRequest (config) {
+    return function request(p, b, s, e) {
+      var that = this, params = {}, body = {}, success = angular.noop, error = angular.noop;
+      var cache = config.$Const.$$builder.cache;
+&nbsp;
+      // Set params, ripped from angular's $resource
+      /* jshint -W086 */ /* (purposefully fall through case statements) */
+      switch (arguments.length) {
+<span class="branch-0 cbranch-no" title="branch not covered" >        case 4:</span>
+<span class="cstat-no" title="statement not covered" >          error = e;</span>
+<span class="cstat-no" title="statement not covered" >          success = s;</span>
+          // fallthrough
+<span class="branch-1 cbranch-no" title="branch not covered" >        case 3:</span>
+<span class="branch-2 cbranch-no" title="branch not covered" >        case 2:</span>
+<span class="cstat-no" title="statement not covered" >          if (angular.isFunction(b)) {</span>
+<span class="cstat-no" title="statement not covered" >            if (angular.isFunction(p)) {</span>
+<span class="cstat-no" title="statement not covered" >              success = p;</span>
+<span class="cstat-no" title="statement not covered" >              error = b;</span>
+<span class="cstat-no" title="statement not covered" >              break;</span>
+            }
+&nbsp;
+<span class="cstat-no" title="statement not covered" >            success = b;</span>
+<span class="cstat-no" title="statement not covered" >            error = s;</span>
+            // fallthrough
+          } else {
+<span class="cstat-no" title="statement not covered" >            params = p;</span>
+<span class="cstat-no" title="statement not covered" >            body = b;</span>
+<span class="cstat-no" title="statement not covered" >            success = s;</span>
+<span class="cstat-no" title="statement not covered" >            break;</span>
+          }
+        case 1:
+          <span class="missing-if-branch" title="if path not taken" >I</span>if (angular.isFunction(p)) {
+<span class="cstat-no" title="statement not covered" >            success = p;</span>
+          } else if (/^(POST|PUT|PATCH)$/i.test(config.method)) {
+            body = p;
+          } else {
+            params = p;
+          }
+          break;
+        case 0: break;
+<span class="branch-5 cbranch-no" title="branch not covered" >        default:</span>
+<span class="cstat-no" title="statement not covered" >          throw new Error('Expected up to 4 arguments [params, data, success, error], got' +</span>
+          arguments.length + ' args');
+      }
+      /* jshint +W086 */ /* (purposefully fall through case statements) */
+&nbsp;
+      // Set value
+      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
+        (this.prototype instanceof config.$Const) ? <span class="branch-0 cbranch-no" title="branch not covered" >new this(body) </span>: new config.$Const(body));
+&nbsp;
+      // Is the requester a nested sub resource?
+      // If so include parent properties
+      var parentParams = {};
+      if (this.$parentItem || (this.prototype &amp;&amp; this.prototype.$parentItem)) {
+        if (!this.$paramMap &amp;&amp; (!this.prototype || !this.prototype.$paramMap)) {
+          parentParams = recurseParent(this.$parentItem || this.prototype.$parentItem, parentParams);
+        } else {
+          params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
+            params, this.$paramMap || this.prototype.$paramMap, 1);
+        }
+      }
+&nbsp;
+      value.$$defer = $q.defer();
+      value.$$params = params;
+      value.$promise = value.$$defer.promise;
+      value.$resolved = false;
+&nbsp;
+      // Resolve path
+      (config.url || config.$Const.$$builder.url).then(function resolved(path) {
+        doRequest(utils.replaceParams(params, path, value, parentParams),
+          value, config, success, error, that);
+      }.bind(this), <span class="fstat-no" title="function not covered" >function rejected() {</span>
+<span class="cstat-no" title="statement not covered" >        throw new Error('Could not resolve URL for ' + config.toString());</span>
+      });
+&nbsp;
+      return (cache || config.$Const.$$builder.config.usePromise) ? value.$promise : value;
+    };
+  }
+&nbsp;
+  return Resourcify;
+}
+&nbsp;
+resourcificator.$inject = ['$http', '$q', 'resourcifyUtils', 'ResourcifyCache'];
+&nbsp;
+angular.module('resourcify').service('Resourcify', resourcificator);
+&nbsp;</pre></td></tr>
+</table></pre>
+
+</div>
+<div class="footer">
+    <div class="meta">Generated by <a href="http://istanbul-js.org/" target="_blank">istanbul</a> at Sun Feb 08 2015 13:26:29 GMT-0700 (MST)</div>
+</div>
+
+<script src="../../prettify.js"></script>
+
+<script src="https://yui-s.yahooapis.com/3.6.0/build/yui/yui-min.js"></script>
+<script>
+
+    YUI().use('datatable', function (Y) {
+
+        var formatters = {
+          pct: function (o) {
+              o.className += o.record.get('classes')[o.column.key];
+              try {
+                  return o.value.toFixed(2) + '%';
+              } catch (ex) { return o.value + '%'; }
+          },
+          html: function (o) {
+              o.className += o.record.get('classes')[o.column.key];
+              return o.record.get(o.column.key + '_html');
+          }
+        },
+          defaultFormatter = function (o) {
+              o.className += o.record.get('classes')[o.column.key];
+              return o.value;
+          };
+
+        function getColumns(theadNode) {
+            var colNodes = theadNode.all('tr th'),
+                cols = [],
+                col;
+            colNodes.each(function (colNode) {
+                col = {
+                    key: colNode.getAttribute('data-col'),
+                    label: colNode.get('innerHTML') || ' ',
+                    sortable: !colNode.getAttribute('data-nosort'),
+                    className: colNode.getAttribute('class'),
+                    type: colNode.getAttribute('data-type'),
+                    allowHTML: colNode.getAttribute('data-html') === 'true' || colNode.getAttribute('data-fmt') === 'html'
+                };
+                col.formatter = formatters[colNode.getAttribute('data-fmt')] || defaultFormatter;
+                cols.push(col);
+            });
+            return cols;
+        }
+
+        function getRowData(trNode, cols) {
+            var tdNodes = trNode.all('td'),
+                    i,
+                    row = { classes: {} },
+                    node,
+                    name;
+            for (i = 0; i < cols.length; i += 1) {
+                name = cols[i].key;
+                node = tdNodes.item(i);
+                row[name] = node.getAttribute('data-value') || node.get('innerHTML');
+                row[name + '_html'] = node.get('innerHTML');
+                row.classes[name] = node.getAttribute('class');
+                //Y.log('Name: ' + name + '; Value: ' + row[name]);
+                if (cols[i].type === 'number') { row[name] = row[name] * 1; }
+            }
+            //Y.log(row);
+            return row;
+        }
+
+        function getData(tbodyNode, cols) {
+            var data = [];
+            tbodyNode.all('tr').each(function (trNode) {
+                data.push(getRowData(trNode, cols));
+            });
+            return data;
+        }
+
+        function replaceTable(node) {
+            if (!node) { return; }
+            var cols = getColumns(node.one('thead')),
+                data = getData(node.one('tbody'), cols),
+                table,
+                parent = node.get('parentNode');
+
+            table = new Y.DataTable({
+                columns: cols,
+                data: data,
+                sortBy: 'file'
+            });
+            parent.set('innerHTML', '');
+            table.render(parent);
+        }
+
+        Y.on('domready', function () {
+            replaceTable(Y.one('div.coverage-summary table'));
+            if (typeof prettyPrint === 'function') {
+                prettyPrint();
+            }
+        });
+    });
+</script>
+</body>
+</html>
