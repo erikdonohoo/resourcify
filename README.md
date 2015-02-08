@@ -1,4 +1,7 @@
 # Resourcify
+
+![build-status](https://api.travis-ci.org/erikdonohoo/resourcify.svg)
+
 Resourcify lets you have rich data models in your angular project that rock!  You can get rid of those long controllers with code that manipulates your models and move it where it belongs, into your models themselves!  It even includes smart caching that you can turn on to optimize your network requests.
 
 1. [Create a Builder](#1-create-a-builder)
