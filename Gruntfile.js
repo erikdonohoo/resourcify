@@ -23,7 +23,7 @@ module.exports = function (grunt) {
     },
 
     // Clean
-    clean: ['.tmp/', 'dist/'],
+    clean: ['.tmp/', 'dist/', 'coverage/'],
 
     // Remove 'use strict' repetition
     replace: {
@@ -97,6 +97,19 @@ module.exports = function (grunt) {
       test: {},
       debug: {
         singleRun: false
+      },
+      'ci-coverage': {
+        singleRun: true,
+        preprocessors: {
+          'src/**/*.js': 'coverage'
+        },
+        reporters: ['coverage'],
+        coverageReporter: {
+          reporters: [{
+            type: 'text-summary',
+            subdir: 'text-summary'
+          }]
+        }
       }
     },
 
@@ -111,6 +124,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', ['jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test']);
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('debug', ['connect:test', 'karma:debug']);
+  grunt.registerTask('test-ci', ['clean', 'jshint:all', 'jshint:test', 'connect:test', 'karma:test', 'karma:ci-coverage'])
 
   // When version bump is occurring, test, bump version, build and update changelog
   grunt.registerTask('bump', function (version) {

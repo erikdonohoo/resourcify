@@ -37,5 +37,8 @@
     "karma-ng-scenario": "^0.1.0",
     "karma-phantomjs-launcher": "^0.1.4",
     "load-grunt-tasks": "^0.6.0"
+  },
+  "scripts": {
+    "test": "grunt test-ci"
   }
 }
