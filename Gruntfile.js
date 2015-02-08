@@ -99,6 +99,7 @@ module.exports = function (grunt) {
         singleRun: false
       },
       'ci-coverage': {
+        browsers: ['PhantomJS'],
         singleRun: true,
         preprocessors: {
           'src/**/*.js': 'coverage'
