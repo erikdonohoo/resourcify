@@ -98,6 +98,10 @@ module.exports = function (grunt) {
       debug: {
         singleRun: false
       },
+      'ci-test': {
+        signleRun: true,
+        browsers: ['PhantomJS']
+      },
       'ci-coverage': {
         browsers: ['PhantomJS'],
         singleRun: true,
@@ -125,7 +129,7 @@ module.exports = function (grunt) {
   grunt.registerTask('test', ['jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test']);
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('debug', ['connect:test', 'karma:debug']);
-  grunt.registerTask('test-ci', ['clean', 'jshint:all', 'jshint:test', 'connect:test', 'karma:test', 'karma:ci-coverage'])
+  grunt.registerTask('test-ci', ['clean', 'jshint:all', 'jshint:test', 'connect:test', 'karma:ci-test', 'karma:ci-coverage']);
 
   // When version bump is occurring, test, bump version, build and update changelog
   grunt.registerTask('bump', function (version) {

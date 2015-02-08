@@ -4,7 +4,7 @@
   "description": "Dead simple rich data models for angular",
   "main": "Gruntfile.js",
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test-ci"
   },
   "repository": {
     "type": "git",
@@ -37,8 +37,5 @@
     "karma-ng-scenario": "^0.1.0",
     "karma-phantomjs-launcher": "^0.1.4",
     "load-grunt-tasks": "^0.6.0"
-  },
-  "scripts": {
-    "test": "grunt test-ci"
   }
 }
