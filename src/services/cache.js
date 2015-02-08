@@ -8,7 +8,7 @@ function ResourcifyCache() {
       id: 'id',
       saveMethod: 'POST',
       key: ['id']
-    }, options);
+    }, options || {});
     this.$lists = {};
   }
 

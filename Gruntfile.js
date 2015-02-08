@@ -86,6 +86,14 @@ module.exports = function (grunt) {
             'src'
           ]
         }
+      },
+      coverage: {
+        options: {
+          port: 9090,
+          open: 'http://localhost:9090',
+          keepalive: true,
+          base: ['coverage/html']
+        }
       }
     },
 
@@ -101,6 +109,21 @@ module.exports = function (grunt) {
       'ci-test': {
         signleRun: true,
         browsers: ['PhantomJS']
+      },
+      coverage: {
+        preprocessors: {
+          'src/**/*.js': 'coverage'
+        },
+        reporters: ['coverage'],
+        coverageReporter: {
+          reporters: [{
+            type: 'html',
+            subdir: 'html'
+          }, {
+            type: 'text',
+            subdir: 'text'
+          }]
+        }
       },
       'ci-coverage': {
         browsers: ['PhantomJS'],
@@ -126,7 +149,8 @@ module.exports = function (grunt) {
 
   // Register tasks
   grunt.registerTask('build', ['clean', 'jshint:all', 'jscs', 'replace:strict', 'concat', 'uglify']);
-  grunt.registerTask('test', ['jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test']);
+  grunt.registerTask('test', ['clean', 'jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test']);
+  grunt.registerTask('coverage', ['test', 'karma:coverage', 'connect:coverage']);
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('debug', ['connect:test', 'karma:debug']);
   grunt.registerTask('test-ci', ['clean', 'jshint:all', 'jshint:test', 'connect:test', 'karma:ci-test', 'karma:ci-coverage']);
