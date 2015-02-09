@@ -1,6 +1,6 @@
 # Resourcify
 
-![build-status](https://api.travis-ci.org/erikdonohoo/resourcify.svg)
+[![build-status](https://api.travis-ci.org/erikdonohoo/resourcify.svg)](https://travis-ci.org/erikdonohoo/resourcify)
 [![Code Climate](https://codeclimate.com/github/erikdonohoo/resourcify/badges/gpa.svg)](https://codeclimate.com/github/erikdonohoo/resourcify)
 [![Test Coverage](https://codeclimate.com/github/erikdonohoo/resourcify/badges/coverage.svg)](https://codeclimate.com/github/erikdonohoo/resourcify)
 
