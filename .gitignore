@@ -4,3 +4,4 @@ bower_components
 npm-debug.log
 npm_debug.log
 coverage
+.DS_Store
