@@ -32,6 +32,55 @@ function cloneConstructor (ToClone) {
   return Clone;
 }
 
+function makeParams(method, args) {
+
+  // Set params, ripped from angular's $resource
+  /* jshint -W086 */ /* (purposefully fall through case statements) */
+  var obj = {}, e = args[3], p = args[0], b = args[1], s = args[2];
+  obj.error = obj.success = angular.noop;
+  obj.params = obj.body = {};
+  switch (args.length) {
+    case 4:
+      obj.error = e;
+      obj.success = s;
+      // fallthrough
+    case 3:
+    case 2:
+      if (angular.isFunction(b)) {
+        if (angular.isFunction(p)) {
+          obj.success = p;
+          obj.error = b;
+          break;
+        }
+
+        obj.success = b;
+        obj.error = s || angular.noop;
+        // fallthrough
+      } else {
+        obj.params = p;
+        obj.body = b;
+        obj.success = s || angular.noop;
+        break;
+      }
+    case 1:
+      if (angular.isFunction(p)) {
+        obj.success = p;
+      } else if (/^(POST|PUT|PATCH)$/i.test(method)) {
+        obj.body = p;
+      } else {
+        obj.params = p;
+      }
+      break;
+    case 0: break;
+    default:
+      throw new Error('Expected up to 4 arguments [params, data, success, error], got ' +
+      args.length + ' args');
+  }
+  /* jshint +W086 */ /* (purposefully fall through case statements) */
+
+  return obj;
+}
+
 function resourcificator ($http, $q, utils, Cache) {
 
   function Resourcify (name, url, config) {
@@ -301,54 +350,15 @@ function resourcificator ($http, $q, utils, Cache) {
   }
 
   function generateRequest (config) {
-    return function request(p, b, s, e) {
-      var that = this, params = {}, body = {}, success = angular.noop, error = angular.noop;
+    return function request() {
+      var that = this;
       var cache = config.$Const.$$builder.cache;
 
-      // Set params, ripped from angular's $resource
-      /* jshint -W086 */ /* (purposefully fall through case statements) */
-      switch (arguments.length) {
-        case 4:
-          error = e;
-          success = s;
-          // fallthrough
-        case 3:
-        case 2:
-          if (angular.isFunction(b)) {
-            if (angular.isFunction(p)) {
-              success = p;
-              error = b;
-              break;
-            }
-
-            success = b;
-            error = s;
-            // fallthrough
-          } else {
-            params = p;
-            body = b;
-            success = s;
-            break;
-          }
-        case 1:
-          if (angular.isFunction(p)) {
-            success = p;
-          } else if (/^(POST|PUT|PATCH)$/i.test(config.method)) {
-            body = p;
-          } else {
-            params = p;
-          }
-          break;
-        case 0: break;
-        default:
-          throw new Error('Expected up to 4 arguments [params, data, success, error], got' +
-          arguments.length + ' args');
-      }
-      /* jshint +W086 */ /* (purposefully fall through case statements) */
+      var args = makeParams(config.method, arguments);
 
       // Set value
       var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
-        (this.prototype instanceof config.$Const) ? new this(body) : new config.$Const(body));
+        (this.prototype instanceof config.$Const) ? new this(args.body) : new config.$Const(args.body));
 
       // Is the requester a nested sub resource?
       // If so include parent properties
@@ -357,20 +367,20 @@ function resourcificator ($http, $q, utils, Cache) {
         if (!this.$paramMap && (!this.prototype || !this.prototype.$paramMap)) {
           parentParams = recurseParent(this.$parentItem || this.prototype.$parentItem, parentParams);
         } else {
-          params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
-            params, this.$paramMap || this.prototype.$paramMap, 1);
+          args.params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
+            args.params, this.$paramMap || this.prototype.$paramMap, 1);
         }
       }
 
       value.$$defer = $q.defer();
-      value.$$params = params;
+      value.$$params = args.params;
       value.$promise = value.$$defer.promise;
       value.$resolved = false;
 
       // Resolve path
       (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-        doRequest(utils.replaceParams(params, path, value, parentParams),
-          value, config, success, error, that);
+        doRequest(utils.replaceParams(args.params, path, value, parentParams),
+          value, config, args.success, args.error, that);
       }.bind(this), function rejected() {
         throw new Error('Could not resolve URL for ' + config.toString());
       });

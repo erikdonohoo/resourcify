@@ -66,6 +66,77 @@ describe('Service: Resourcify -', function () {
     });
   });
 
+  describe('makeParams', function () {
+    /* global makeParams: false */
+
+    var test;
+    beforeEach(function () {
+      test = function () {};
+    });
+
+    it('should error when wrong amount of params are used', function () {
+      expect(makeParams.bind(makeParams, 'GET', [1, 2, 3, 4, 5])).toThrow();
+    });
+
+    it('should handle all 1 param cases', function () {
+      var obj = makeParams('PUT', [test]);
+      expect(obj.success).toBe(test);
+      expect(obj.params).toEqual({});
+      expect(obj.body).toEqual({});
+      expect(obj.error).toBe(angular.noop);
+      obj = makeParams('PUT', [{id: 1}]);
+      expect(obj.success).toBe(angular.noop);
+      expect(obj.params).toEqual({});
+      expect(obj.body).toEqual({id: 1});
+      expect(obj.error).toBe(angular.noop);
+      obj = makeParams('GET', [{id: 1}]);
+      expect(obj.success).toBe(angular.noop);
+      expect(obj.params).toEqual({id: 1});
+      expect(obj.body).toEqual({});
+      expect(obj.error).toBe(angular.noop);
+    });
+
+    it('should handle all 2 param cases', function () {
+      var obj = makeParams('GET', [test, test]);
+      expect(obj.success).toBe(test);
+      expect(obj.params).toEqual({});
+      expect(obj.body).toEqual({});
+      expect(obj.error).toBe(test);
+      obj = makeParams('GET', [{id: 1}, test]);
+      expect(obj.success).toBe(test);
+      expect(obj.params).toEqual({id: 1});
+      expect(obj.body).toEqual({});
+      expect(obj.error).toBe(angular.noop);
+      obj = makeParams('GET', [{id: 1}, {id: 2}]);
+      expect(obj.success).toBe(angular.noop);
+      expect(obj.params).toEqual({id: 1});
+      expect(obj.body).toEqual({id: 2});
+      expect(obj.error).toBe(angular.noop);
+    });
+
+    it('should handle all 3 param cases', function () {
+      var obj = makeParams('GET', [{id: 1}, test, test]);
+      expect(obj.success).toBe(test);
+      expect(obj.params).toEqual({id: 1});
+      expect(obj.body).toEqual({});
+      expect(obj.error).toBe(test);
+      obj = makeParams('GET', [{id: 1}, {id: 2}, test]);
+      expect(obj.success).toBe(test);
+      expect(obj.params).toEqual({id: 1});
+      expect(obj.body).toEqual({id: 2});
+      expect(obj.error).toBe(angular.noop);
+    });
+
+    it('should handle 4 params', function () {
+      var obj = makeParams('GET', [{id: 1}, {id: 2}, test, test]);
+      expect(obj.success).toBe(test);
+      expect(obj.params).toEqual({id: 1});
+      expect(obj.body).toEqual({id: 2});
+      expect(obj.error).toBe(test);
+    });
+    /* global makeParams: true */
+  });
+
   describe('method', function () {
     var UserBuilder;
     beforeEach(function () {
