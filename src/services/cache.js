@@ -1,5 +1,11 @@
 'use strict';
 
+function removeFromLists(item, lists) {
+  angular.forEach(lists, function (list) {
+    if (list.indexOf(item) !== -1) list.splice(list.indexOf(item), 1);
+  });
+}
+
 function ResourcifyCache() {
 
   function Cache (options) {
@@ -36,6 +42,8 @@ function ResourcifyCache() {
       }.bind(item);
       return cache[key[key.length - 1]] = item;
     } else {
+      // Need to update references in other arrays
+      // extends doesn't copy
       angular.extend(cache[key[key.length - 1]], item);
       return cache[key[key.length - 1]];
     }
@@ -58,7 +66,9 @@ function ResourcifyCache() {
     for (var i = 0; i < key.length - 1; i++) {
       cache = cache[key[i]];
     }
-    // TODO May need to consider what to do with arrays that refence this item that is being removed
+
+    var item = cache[key[key.length - 1]];
+    removeFromLists(item, this.$lists);
     delete cache[key[key.length - 1]];
   };
 
@@ -85,9 +95,9 @@ function ResourcifyCache() {
   Cache.prototype.addList = function (key, list) {
     if (!this.$lists[key]) {
       this.$lists[key] = list;
-      angular.forEach(list, function (item) {
-        this.add(item);
-      }.bind(this));
+      for (var i = 0; i < list.length; i++) {
+        list[i] = this.add(list[i]);
+      }
     } else {
       // Merge lists, add new values to cache
       angular.forEach(list, function (newItem) {

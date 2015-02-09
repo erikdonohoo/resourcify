@@ -152,7 +152,7 @@ module.exports = function (grunt) {
 
   // Register tasks
   grunt.registerTask('build', ['clean', 'jshint:all', 'jscs', 'replace:strict', 'concat', 'uglify']);
-  grunt.registerTask('test', ['clean', 'jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test']);
+  grunt.registerTask('test', ['clean', 'jshint:all', 'jscs', 'jshint:test', 'connect:test', 'karma:test', 'karma:coverage']);
   grunt.registerTask('coverage', ['test', 'karma:coverage', 'connect:coverage']);
   grunt.registerTask('default', ['test', 'build']);
   grunt.registerTask('debug', ['connect:test', 'karma:debug']);

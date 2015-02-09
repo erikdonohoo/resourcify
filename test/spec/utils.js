@@ -118,5 +118,12 @@ describe('Service: ResourceUtils', function () {
       expect(replaceParams({}, 'http://localhost/api/:version', {version: 'v1', thingId: '123', action: 'post'}))
       .toEqual('http://localhost/api/v1');
     });
+
+    it('should use parentparams as finalparams if there are no others on the query', function () {
+      expect(replaceParams({}, 'http://localhost/api/:version?other=:other',
+        {thingId: '123', action: 'post'},
+        {version: 'v1', other: 'text'}))
+      .toEqual('http://localhost/api/v1?other=text');
+    });
   });
 });
