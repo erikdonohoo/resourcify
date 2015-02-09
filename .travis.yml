@@ -4,3 +4,8 @@ node_js:
 before_script:
   - "npm install -g bower"
   - "bower instal"
+addons:
+  code_climate:
+    repo_token: 49aafdc3172901720d142c9d07f5563cea43bf688538d4cc00bddcaf271b89f0
+after_script:
+  - cat coverage/lcov/lcov.info | codeclimate

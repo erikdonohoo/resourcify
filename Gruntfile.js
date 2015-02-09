@@ -136,6 +136,9 @@ module.exports = function (grunt) {
           reporters: [{
             type: 'text-summary',
             subdir: 'text-summary'
+          }, {
+            type: 'lcov',
+            subdir: 'lcov'
           }]
         }
       }
