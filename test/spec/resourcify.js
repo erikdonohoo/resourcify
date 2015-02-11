@@ -473,12 +473,11 @@ describe('Service: Resourcify -', function () {
   });
 
   describe('cache', function () {
-    var User, $http, $q;
-    beforeEach(inject(function (_$httpBackend_, _$q_) {
+    var User, $http, $q, $scope;
+    beforeEach(inject(function (_$httpBackend_, _$q_, _$rootScope_) {
       $http = _$httpBackend_;
       $q = _$q_;
-    }));
-    beforeEach(function () {
+      $scope = _$rootScope_;
       User = new Resourcify('User', 'http://localhost/api/v1/users/:id', {cache: {key: 'id'}})
       .request({method: 'GET', name: 'query', isArray: true, isInstance: false})
       .request({method: 'GET', name: 'get', isInstance: false})
@@ -487,20 +486,20 @@ describe('Service: Resourcify -', function () {
       .request({method: 'GET', name: '$get'})
       .request({method: 'GET', name: 'queryInvalid', isInstance: false, isArray: true, invalidateListModels: true})
       .create();
-    });
-    afterEach(function () {
-      $http.verifyNoOutstandingExpectation();
-    });
+    }));
 
     it('should use same array reference for multiple calls', function () {
       $http.expectGET('http://localhost/api/v1/users')
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
       var users = User.query();
+      $scope.$digest();
       $http.flush();
       var users2 = User.query();
+      $scope.$digest();
       $q.all([users2, users]).then(function (list) {
         expect(list[0]).toBe(list[1]);
       });
+      $http.verifyNoOutstandingExpectation();
     });
 
     it('should not request when item is cached from query call', function () {
@@ -518,6 +517,7 @@ describe('Service: Resourcify -', function () {
           });
         });
       });
+      $http.verifyNoOutstandingExpectation();
     });
 
     it('should be able to force a request and still keep correct references', function () {
@@ -532,6 +532,7 @@ describe('Service: Resourcify -', function () {
       $q.all([user, users]).then(function (list) {
         expect(list[0]).toBe(list[1][0]);
       });
+      $http.verifyNoOutstandingExpectation();
     });
 
     it('should requery after a save', function () {
@@ -548,6 +549,7 @@ describe('Service: Resourcify -', function () {
       .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}, {id: 125, name: 'sally'}]);
       User.query();
       $http.flush();
+      $http.verifyNoOutstandingExpectation();
     });
 
     it('should allow a call to an invalidated model with invalidateListModels flag set', function () {
@@ -562,6 +564,19 @@ describe('Service: Resourcify -', function () {
         expect(detailedUser.friend).toBe(true);
       });
       $http.flush();
+      $http.verifyNoOutstandingExpectation();
+    });
+
+    it('should handle simulataneous calls and resolve all promises with same object', function () {
+      $http.expectGET('http://localhost/api/v1/users')
+      .respond([{id: 123, name: 'bob'}, {id: 124, name: 'sue'}]);
+      var handler = jasmine.createSpy('callback');
+      var handler2 = jasmine.createSpy('callback');
+      User.query().then(handler);
+      User.query().then(handler2);
+      $http.flush();
+      expect(handler2).toHaveBeenCalledWith(handler.calls.first().args[0]);
+      $http.verifyNoOutstandingExpectation();
     });
 
     it('should change objects across references', function () {
@@ -585,6 +600,7 @@ describe('Service: Resourcify -', function () {
         users.user2.goo = 'foo';
         expect(users.user2.goo).toEqual(users.user1.goo);
       });
+      $http.verifyNoOutstandingExpectation();
     });
   });
 

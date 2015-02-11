@@ -205,11 +205,14 @@ function resourcificator ($http, $q, utils, Cache) {
 
   function doRequest (url, value, config, success, error, Maybe) {
 
+    var cacheDefer;
+
     function resolve() {
       value.$resolved = true;
       value.$url = url;
       success(value);
       value.$$defer.resolve(value);
+      if (cacheDefer) cacheDefer.resolve(value);
     }
 
     var httpConfig = {
@@ -224,18 +227,32 @@ function resourcificator ($http, $q, utils, Cache) {
       if (!angular.isArray(value)) {
         var cValue = cache.get(cache.getKey(angular.extend(value.$$params, value)));
         if (cValue && !cValue.$invalid) {
-          cValue.$promise = value.$promise;
+          cacheDefer = value.$$defer;
           value = cValue;
           resolve();
           return;
+        } else {
+          // add to cache
+          // TODO wont handle multi key
+          if (!value[config.$Const.$$builder.config.idProp]) {
+            if (value.$$params[config.$Const.$$builder.config.idProp]) {
+              value[config.$Const.$$builder.config.idProp] = value.$$params[config.$Const.$$builder.config.idProp];
+              value = cache.add(value);
+            }
+          } else {
+            value = cache.add(value);
+          }
         }
       } else {
         var lValue = cache.getList(url);
         if (lValue && !lValue.$invalid) {
-          lValue.$promise = value.$promise;
+          cacheDefer = value.$$defer;
           value = lValue;
           resolve();
           return;
+        } else {
+          // Add to cache
+          value = cache.addList(url, value);
         }
       }
     }
@@ -245,11 +262,13 @@ function resourcificator ($http, $q, utils, Cache) {
 
     // Strip $ from value for data
     var sendData = {};
-    angular.forEach(value, function (v, key) {
-      if (value.hasOwnProperty(key) && key.charAt(0) !== '$') {
-        sendData[key] = v;
-      }
-    });
+    if (!angular.isArray(value) && config.method !== 'GET') {
+      angular.forEach(value, function (v, key) {
+        if (value.hasOwnProperty(key) && key.charAt(0) !== '$') {
+          sendData[key] = v;
+        }
+      });
+    }
 
     var classConfig = config.$Const.$$builder.config.httpConfig;
     httpConfig.data = /^(POST|PUT|PATCH|DELETE)$/i.test(config.method) ? sendData : undefined;
