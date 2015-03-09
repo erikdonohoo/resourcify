@@ -223,7 +223,7 @@ function resourcificator ($http, $q, utils, Cache) {
     // Check if what we are requesting is already in the cache
     // If so, make sure initial 'value' is from the cache, and get out of here
     var cache = config.$Const.$$builder.cache;
-    if (cache && !config.noCache && !config.$force && config.method === 'GET') {
+    if (cache && cache.isCacheable(config)) {
       if (!angular.isArray(value)) {
         var cValue = cache.get(cache.getKey(angular.extend(value.$$params, value)));
         if (cValue && !cValue.$invalid) {
