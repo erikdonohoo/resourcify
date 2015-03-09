@@ -18,6 +18,10 @@ function ResourcifyCache() {
     this.$lists = {};
   }
 
+  Cache.prototype.isCacheable = function (config) {
+    return !config.noCache && !config.$force && config.method === 'GET';
+  };
+
   Cache.prototype.add = function (item, postCall) {
     // If cache contains item, update it
     // If cache doesn't contain item, add it
