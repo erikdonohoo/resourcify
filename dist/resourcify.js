@@ -362,7 +362,7 @@ function resourcificator ($http, $q, utils, Cache) {
         if (cValue && !cValue.$invalid) {
           cacheDefer = value.$$defer;
           value = cValue;
-          resolve();
+          value.$promise.then(resolve);
           return;
         } else {
           // add to cache
@@ -381,7 +381,7 @@ function resourcificator ($http, $q, utils, Cache) {
         if (lValue && !lValue.$invalid) {
           cacheDefer = value.$$defer;
           value = lValue;
-          resolve();
+          value.$promise.then(resolve);
           return;
         } else {
           // Add to cache
