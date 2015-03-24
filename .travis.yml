@@ -3,7 +3,7 @@ node_js:
   - "0.10"
 before_script:
   - "npm install -g bower grunt"
-  - "bower install"
+  - "bower instal"
 addons:
   code_climate:
     repo_token: 49aafdc3172901720d142c9d07f5563cea43bf688538d4cc00bddcaf271b89f0
