@@ -285,11 +285,12 @@ function resourcificator ($http, $q, utils, Cache) {
           var model = typeof item === 'object' ? (Maybe.prototype instanceof config.$Const ?
             new Maybe(item) : new config.$Const(item)) : {data: item};
           model.$invalid = (config.invalidateListModels && cache);
-          value.push(model);
+          if (cache && !config.noCache) {
+            cache.addItemToList(value, model);
+          } else {
+            value.push(model);
+          }
         });
-        if (cache && !config.noCache) {
-          value = cache.addList(url, value);
-        }
       } else {
 
         value = (typeof dataToUse === 'object') ? angular.extend(value, dataToUse) : angular.extend(value, {data: dataToUse});

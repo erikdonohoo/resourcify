@@ -187,4 +187,22 @@ describe('Cache', function () {
     cache.add(i3, true);
     expect(cache.$lists['http://localhost/1/stuff?thing'].$invalid).toBe(true);
   });
+
+  it('should add items to list correctly', function () {
+    var cache = Cache.createCache();
+    var i = new Item({id: '1'});
+    var i2 = new Item({id: '2'});
+    var list = [];
+    list.key = 'http://localhost/1/stuff?thing';
+    list = cache.addList(list.key, list);
+    cache.addItemToList(list, i);
+    expect(list.length).toBe(1);
+    cache.addItemToList(list, i);
+    expect(list.length).toBe(1);
+    i = angular.copy(i);
+    cache.addItemToList(list, i);
+    expect(list.length).toBe(1);
+    cache.addItemToList(list, i2);
+    expect(list.length).toBe(2);
+  });
 });

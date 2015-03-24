@@ -100,6 +100,25 @@ function ResourcifyCache() {
     return this.$lists[key] ? this.$lists[key] : null;
   };
 
+  Cache.prototype.addItemToList = function (list, item) {
+
+    if (!this.get(this.getKey(item))) {
+      item = this.add(item);
+      list.push(item);
+    } else {
+      item = this.add(item);
+      var match = false;
+      for (var i = 0; i < list.length; i++) {
+        if (item === list[i] || angular.equals(this.getKey(item), this.getKey(list[i]))) {
+          match = true;
+          break;
+        }
+      }
+
+      if (!match) list.push(item);
+    }
+  };
+
   Cache.prototype.addList = function (key, list) {
     if (!this.$lists[key]) {
       this.$lists[key] = list;
@@ -112,7 +131,7 @@ function ResourcifyCache() {
         var match = false;
         newItem = this.add(newItem);
         angular.forEach(this.$lists[key], function (item) {
-          if (newItem === item) {
+          if (item === newItem || angular.equals(this.getKey(item), this.getKey(newItem))) {
             match = true;
           }
         }.bind(this));
@@ -418,11 +437,12 @@ function resourcificator ($http, $q, utils, Cache) {
           var model = typeof item === 'object' ? (Maybe.prototype instanceof config.$Const ?
             new Maybe(item) : new config.$Const(item)) : {data: item};
           model.$invalid = (config.invalidateListModels && cache);
-          value.push(model);
+          if (cache && !config.noCache) {
+            cache.addItemToList(value, model);
+          } else {
+            value.push(model);
+          }
         });
-        if (cache && !config.noCache) {
-          value = cache.addList(url, value);
-        }
       } else {
 
         value = (typeof dataToUse === 'object') ? angular.extend(value, dataToUse) : angular.extend(value, {data: dataToUse});
