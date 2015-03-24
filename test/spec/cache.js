@@ -205,4 +205,21 @@ describe('Cache', function () {
     cache.addItemToList(list, i2);
     expect(list.length).toBe(2);
   });
+
+  it('should merge lists', function () {
+    var cache = Cache.createCache();
+    var i = new Item({id: '1'});
+    var i2 = new Item({id: '2'});
+    var list = [i, i2];
+    list.key = 'http://localhost/1/stuff?thing';
+    list = cache.addList(list.key, list);
+    var list2 = [new Item({id: 1})];
+    list2.key = list.key;
+    list2 = cache.addList(list2.key, list2);
+    expect(list).toBe(list2);
+    var list3 = [new Item({id: 3})];
+    list3.key = list.key;
+    list3 = cache.addList(list3.key, list3);
+    expect(list3).toBe(list2);
+  });
 });
