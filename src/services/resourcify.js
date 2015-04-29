@@ -173,33 +173,17 @@ function resourcificator ($http, $q, utils, Cache) {
     }
 
     if (config.isInstance) {
-      Constructor.prototype[config.name] = generateRequest(config);
-      Constructor.prototype[config.name].withConfig = function () {
-        utils.extendDeep(config.config, arguments[0]);
-        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
-      };
-
-      if (config.$Const.$$builder.cache) {
-        Constructor.prototype[config.name].force = generateRequest(angular.extend({$force: true}, config));
-        Constructor.prototype[config.name].force.withConfig = function () {
-          utils.extendDeep(config.config, arguments[0]);
-          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
-        };
-      }
+      Object.defineProperty(Constructor.prototype, config.name, {
+        configurable: true,
+        enumarable: true,
+        get: generateRequest(config)
+      });
     } else {
-      Constructor[config.name] = generateRequest(config);
-      Constructor[config.name].withConfig = function () {
-        utils.extendDeep(config.config, arguments[0]);
-        return generateRequest(config).apply(this, [].slice.call(arguments, 1));
-      };
-
-      if (config.$Const.$$builder.cache) {
-        Constructor[config.name].force = generateRequest(angular.extend({$force: true}, config));
-        Constructor[config.name].force.withConfig = function () {
-          utils.extendDeep(config.config, arguments[0]);
-          return generateRequest(angular.extend({$force: true}, config)).apply(this, [].slice.call(arguments, 1));
-        };
-      }
+      Object.defineProperty(Constructor, config.name, {
+        configurable: true,
+        enumarable: true,
+        get: generateRequest(config)
+      });
     }
   }
 
@@ -370,42 +354,54 @@ function resourcificator ($http, $q, utils, Cache) {
   }
 
   function generateRequest (config) {
-    return function request() {
-      var that = this;
-      var cache = config.$Const.$$builder.cache;
+    return function () {
+      var requestBuilder = function (config) {
+        return function request() {
+          var that = this;
+          var cache = config.$Const.$$builder.cache;
 
-      var args = makeParams(config.method, arguments);
+          var args = makeParams(config.method, arguments);
 
-      // Set value
-      var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
-        (this.prototype instanceof config.$Const) ? new this(args.body) : new config.$Const(args.body));
+          // Set value
+          var value = (this instanceof config.$Const) ? this : (config.isArray ? [] :
+            (this.prototype instanceof config.$Const) ? new this(args.body) : new config.$Const(args.body));
 
-      // Is the requester a nested sub resource?
-      // If so include parent properties
-      var parentParams = {};
-      if (this.$parentItem || (this.prototype && this.prototype.$parentItem)) {
-        if (!this.$paramMap && (!this.prototype || !this.prototype.$paramMap)) {
-          parentParams = recurseParent(this.$parentItem || this.prototype.$parentItem, parentParams);
-        } else {
-          args.params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
-            args.params, this.$paramMap || this.prototype.$paramMap, 1);
-        }
+          // Is the requester a nested sub resource?
+          // If so include parent properties
+          var parentParams = {};
+          if (this.$parentItem || (this.prototype && this.prototype.$parentItem)) {
+            if (!this.$paramMap && (!this.prototype || !this.prototype.$paramMap)) {
+              parentParams = recurseParent(this.$parentItem || this.prototype.$parentItem, parentParams);
+            } else {
+              args.params = buildSubResourceParams(this.$parentItem || this.prototype.$parentItem,
+                args.params, this.$paramMap || this.prototype.$paramMap, 1);
+            }
+          }
+
+          value.$$defer = $q.defer();
+          value.$$params = args.params;
+          value.$promise = value.$$defer.promise;
+          value.$resolved = false;
+
+          // Resolve path
+          (config.url || config.$Const.$$builder.url).then(function resolved(path) {
+            doRequest(utils.replaceParams(args.params, path, value, parentParams),
+              value, config, args.success, args.error, that);
+          }.bind(this), function rejected() {
+            throw new Error('Could not resolve URL for ' + config.toString());
+          });
+
+          return (cache || config.$Const.$$builder.config.usePromise) ? value.$promise : value;
+        };
+      };
+
+      var request = requestBuilder(config);
+
+      if (config.$Const.$$builder.cache) {
+        request.force = requestBuilder(angular.extend({$force: true}, config)).bind(this);
       }
 
-      value.$$defer = $q.defer();
-      value.$$params = args.params;
-      value.$promise = value.$$defer.promise;
-      value.$resolved = false;
-
-      // Resolve path
-      (config.url || config.$Const.$$builder.url).then(function resolved(path) {
-        doRequest(utils.replaceParams(args.params, path, value, parentParams),
-          value, config, args.success, args.error, that);
-      }.bind(this), function rejected() {
-        throw new Error('Could not resolve URL for ' + config.toString());
-      });
-
-      return (cache || config.$Const.$$builder.config.usePromise) ? value.$promise : value;
+      return request;
     };
   }
 
