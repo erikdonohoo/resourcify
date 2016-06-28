@@ -13,6 +13,7 @@ Resourcify lets you have rich data models in your angular project that rock!  Yo
 5. [Using Your Model](#5-using-your-model)
 
 **Other Documentation**
+
 * [Using the Cache](#using-the-cache)
 * [Nesting Resources](#nesting-resources)
 
